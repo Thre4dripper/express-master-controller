@@ -13,6 +13,7 @@ interface IMiddlewareConfig {
     generateSwaggerDocs: Boolean
     swaggerDocsEndpoint?: string
     swaggerDocPath?: string
+    modifySwaggerDoc?: boolean
 }
 
 const loadRouters = async (dir: string, app: express.Application) => {
@@ -37,13 +38,12 @@ const loadRouters = async (dir: string, app: express.Application) => {
 }
 
 const masterController =
-    ({ routersPath, generateSwaggerDocs, swaggerDocPath, swaggerDocsEndpoint }: IMiddlewareConfig) =>
+    ({ routersPath, generateSwaggerDocs, swaggerDocPath, swaggerDocsEndpoint, modifySwaggerDoc }: IMiddlewareConfig) =>
         async (req: Request, res: Response, next: NextFunction) => {
+            if (swaggerDocPath) SwaggerConfig.initSwagger({ path: swaggerDocPath, modify: modifySwaggerDoc })
+            else SwaggerConfig.initSwagger()
             await loadRouters(routersPath, req.app)
-
             if (generateSwaggerDocs) {
-                if (swaggerDocPath) SwaggerConfig.initSwagger({ path: swaggerDocPath, modify: false })
-                else SwaggerConfig.initSwagger()
                 req.app.use(
                     swaggerDocsEndpoint || '/api-docs',
                     swaggerUI.serve,
