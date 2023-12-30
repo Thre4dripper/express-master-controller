@@ -1,9 +1,7 @@
-import { StatusCodes } from '../enums/StatusCodes'
-
 export default class ResponseBuilder {
-    response: { status: StatusCodes; message: string; data: any }
+    response: { status: string; message: string; data: any }
 
-    constructor(status: StatusCodes, data: any, message: string) {
+    constructor(status: string, data: any, message: string) {
         this.response = {
             status,
             data,

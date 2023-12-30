@@ -1,0 +1,19 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "Node Swagger API",
+        "description": "Demonstrating how to describe a RESTful API with Swagger"
+    },
+    "schemes": ["http", "https"],
+    "consumes": ["application/json"],
+    "produces": ["application/json"],
+    "securityDefinitions": {
+        "token": {
+            "type": "apiKey",
+            "name": "token",
+            "in": "header"
+        }
+    },
+    "paths": {}
+}
