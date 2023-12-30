@@ -40,6 +40,7 @@ const loadRouters = async (dir: string, app: express.Application) => {
 const masterController =
     ({ routersPath, generateSwaggerDocs, swaggerDocPath, swaggerDocsEndpoint, modifySwaggerDoc }: IMiddlewareConfig) =>
         async (req: Request, res: Response, next: NextFunction) => {
+            if (!routersPath) throw new Error('routersPath is required')
             if (swaggerDocPath) SwaggerConfig.initSwagger({ path: swaggerDocPath, modify: modifySwaggerDoc })
             else SwaggerConfig.initSwagger()
             await loadRouters(routersPath, req.app)
