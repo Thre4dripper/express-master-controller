@@ -2,6 +2,6 @@
 .gitignore
 .prettierrc
 .prettierignore
-.tsconfig.json
+tsconfig.json
 README.md
 LICENSE

@@ -30,7 +30,8 @@ const loadRouters = async (dir: string, app: express.Application) => {
             (entry.name.endsWith('.router.ts') || entry.name.endsWith('.router.js'))
         ) {
             const router = require(fullPath)
-            router.default(app)
+            if (router.default) router.default(app)
+            else router(app)
         }
     }
 }
