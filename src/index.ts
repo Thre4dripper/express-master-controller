@@ -7,12 +7,12 @@ import RequestBuilder from './RequestBuilder'
 import ResponseBuilder from './ResponseBuilder'
 import { NextFunction, Request, Response } from 'express'
 import SwaggerConfig from './config/swaggerConfig'
-import swaggerDocument from '../swagger.json'
 
 interface IMiddlewareConfig {
     routersPath: string
     generateSwaggerDocs: Boolean
-    swaggerDocsPath?: string
+    swaggerDocsEndpoint?: string
+    swaggerDocPath?: string
 }
 
 const loadRouters = async (dir: string, app: express.Application) => {
@@ -37,17 +37,18 @@ const loadRouters = async (dir: string, app: express.Application) => {
 }
 
 const masterController =
-    ({ routersPath, generateSwaggerDocs, swaggerDocsPath }: IMiddlewareConfig) =>
-    async (req: Request, res: Response, next: NextFunction) => {
-        await loadRouters(routersPath, req.app)
+    ({ routersPath, generateSwaggerDocs, swaggerDocPath, swaggerDocsEndpoint }: IMiddlewareConfig) =>
+        async (req: Request, res: Response, next: NextFunction) => {
+            await loadRouters(routersPath, req.app)
 
-        if (generateSwaggerDocs) {
-            SwaggerConfig.initSwagger(swaggerDocument)
-            req.app.use(
-                swaggerDocsPath!,
-                swaggerUI.serve,
-                swaggerUI.setup(SwaggerConfig.getSwaggerDocument())
-            )
+            if (generateSwaggerDocs) {
+                if (swaggerDocPath) SwaggerConfig.initSwagger({ path: swaggerDocPath, modify: false })
+                else SwaggerConfig.initSwagger()
+                req.app.use(
+                    swaggerDocsEndpoint || '/api-docs',
+                    swaggerUI.serve,
+                    swaggerUI.setup(SwaggerConfig.getSwaggerDocument()),
+                )
+            }
         }
-    }
 export { masterController, MasterController, RequestBuilder, ResponseBuilder }
