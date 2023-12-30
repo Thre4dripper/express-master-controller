@@ -50,5 +50,7 @@ const masterController =
                     swaggerUI.setup(SwaggerConfig.getSwaggerDocument()),
                 )
             }
+
+            next()
         }
 export { masterController, MasterController, RequestBuilder, ResponseBuilder }
