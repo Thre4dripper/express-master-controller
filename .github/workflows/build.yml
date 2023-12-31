@@ -22,7 +22,7 @@ jobs:
         run: yarn install
 
       - name: Build
-        run: rm -rf dist && npm ci && npm run build
+        run: rm -rf dist && npm run build
 
       - name: Create package.json in dist/cjs and dist/esm
         run: |
