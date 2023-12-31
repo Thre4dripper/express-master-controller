@@ -18,7 +18,7 @@ interface IMiddlewareConfig {
 
 const isRequireSupported = () => {
     try {
-        require('')
+        require('fs')
         return true
     } catch (error) {
         return false
@@ -51,7 +51,8 @@ const loadRouters = async (dir: string, app: express.Application) => {
                     throw new Error('router file must export a function by module.exports or exports.routerName')
                 }
             } else {
-                const router = await import(fullPath)
+                const fileUrl = new URL('file:///' + fullPath)
+                const router = await import(fileUrl.href)
                 if (typeof router === 'function') {
                     router(app)
                 } else if (typeof router === 'object') {

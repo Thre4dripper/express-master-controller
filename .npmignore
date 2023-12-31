@@ -3,6 +3,8 @@
 .gitignore
 .prettierrc
 .prettierignore
+tsconfig.esm.json
+tsconfig.cjs.json
 tsconfig.json
 README.md
 LICENSE
