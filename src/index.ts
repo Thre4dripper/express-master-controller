@@ -16,6 +16,14 @@ interface IMiddlewareConfig {
     modifySwaggerDoc?: boolean
 }
 
+const isRequireSupported = () => {
+    try {
+        require('')
+        return true
+    } catch (error) {
+        return false
+    }
+}
 const loadRouters = async (dir: string, app: express.Application) => {
     //load all routers from dir and sub dir
     const entries = await fs.readdir(dir, { withFileTypes: true })
@@ -28,11 +36,34 @@ const loadRouters = async (dir: string, app: express.Application) => {
             await loadRouters(fullPath, app)
         } else if (
             entry.isFile() &&
-            (entry.name.endsWith('.router.ts') || entry.name.endsWith('.router.js'))
-        ) {
-            const router = require(fullPath)
-            if (router.default) router.default(app)
-            else router(app)
+            (entry.name.endsWith('.router.ts') || entry.name.endsWith('.router.js') || entry.name.endsWith('.router.mjs'))) {
+            if (isRequireSupported()) {
+                const router = require(fullPath)
+                if (typeof router === 'function') {
+                    router(app)
+                } else if (typeof router === 'object') {
+                    Object.keys(router).forEach(key => {
+                        if (typeof router[key] === 'function') {
+                            router[key](app)
+                        }
+                    })
+                } else {
+                    throw new Error('router file must export a function by module.exports or exports.routerName')
+                }
+            } else {
+                const router = await import(fullPath)
+                if (typeof router === 'function') {
+                    router(app)
+                } else if (typeof router === 'object') {
+                    Object.keys(router).forEach(key => {
+                        if (typeof router[key] === 'function') {
+                            router[key](app)
+                        }
+                    })
+                } else {
+                    throw new Error('router file must export a function by export default or export const routerName')
+                }
+            }
         }
     }
 }
