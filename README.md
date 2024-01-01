@@ -31,9 +31,14 @@ import { masterController } from 'node-master-controller'
 
 const app = express()
 
+// routersPath: routesPath,
+//     generateSwaggerDocs: true,
+//     swaggerDocsEndpoint: '/swagger',
+//     swaggerDocPath,
+//     modifySwaggerDoc
 app.use(masterController({
     // make sute to use absolute path for the routes directory
-    routesPath: path.join(__dirname, 'routes'),
+    routersPath: path.join(__dirname, 'routes'),
     // whether to generate swagger docs or not
     generateSwaggerDocs: true,
     // if you want to give your swagger doc
