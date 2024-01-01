@@ -1,5 +1,5 @@
-import MasterController from './../MasterController'
-import RequestBuilder, { PayloadType } from './../RequestBuilder'
+import MasterController from '../MasterController'
+import RequestBuilder, { PayloadType } from '../RequestBuilder'
 import j2s from 'joi-to-swagger'
 import * as fs from 'fs/promises'
 
@@ -190,12 +190,12 @@ class SwaggerConfig {
 
         if (this.swaggerModify) {
             fs.writeFile(this.swaggerPath, JSON.stringify(this.swaggerDocument, null, 2))
-                .then(() => {
-                    console.log('Swagger document updated')
-                })
-                .catch((err) => {
-                    console.log('Error updating swagger document', err)
-                })
+            .then(() => {
+                console.log('Swagger document updated')
+            })
+            .catch((err) => {
+                console.log('Error updating swagger document', err)
+            })
         }
     }
 

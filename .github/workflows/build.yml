@@ -30,6 +30,12 @@ jobs:
           echo '{"type": "commonjs"}' > dist/cjs/package.json
           echo '{"type": "module"}' > dist/esm/package.json
 
+      - name: Delete useless dist/src
+        run: rm -rf dist/src
+
+      - name: display dist folder
+        run: ls dist
+
 #      - name: Publish package on NPM 📦
 #        run: npm publish
 #        env:

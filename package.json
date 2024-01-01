@@ -1,6 +1,6 @@
 {
   "name": "node-master-controller",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Master Controller with automated swagger docs creation for node express app",
   "main": "dist/cjs/src/index.js",
   "types": "dist/types/src/index.d.ts",
@@ -20,7 +20,8 @@
   },
   "scripts": {
     "transpile": "tsc --project tsconfig.esm.json & tsc --project tsconfig.cjs.json & tsc --project tsconfig.types.json",
-    "build": "yarn transpile",
+    "fix": "tsc-esm-fix --src='dist/esm/src/**/*.js' --ext='.js'",
+    "build": "yarn transpile && yarn fix",
     "start": "ts-node src/index.ts"
   },
   "keywords": [
@@ -47,6 +48,7 @@
     "@types/swagger-ui-express": "^4.1.6",
     "prettier": "^3.1.1",
     "ts-node": "^10.9.2",
+    "tsc-esm-fix": "^2.20.21",
     "typescript": "^5.3.3"
   }
 }
