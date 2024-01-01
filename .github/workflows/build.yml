@@ -36,7 +36,7 @@ jobs:
       - name: display dist folder
         run: ls dist
 
-#      - name: Publish package on NPM 📦
-#        run: npm publish
-#        env:
-#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish package on NPM 📦
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
