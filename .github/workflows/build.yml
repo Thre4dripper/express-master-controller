@@ -1,12 +1,45 @@
-name: Build
+name: Version Check and Publish
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 jobs:
+  check-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Get current version from package.json
+        id: pkg
+        run: echo "::set-output name=version::$(node -p "require('./package.json').version")"
+
+      - name: Get latest version from npm (configurable)
+        id: npm
+        run: echo "::set-output name=version::$(npm view ${{ github.event.inputs.package-name }} version)"
+        with:
+          package-name: express-master-controller
+
+      - name: Compare versions and set output
+        run: |
+          if [ "${{ steps.pkg.outputs.version }}" = "${{ steps.npm.outputs.version }}" ]; then
+            echo "::set-output name=should-update::true"
+          else
+            echo "::set-output name=should-publish::true"
+          fi
+
   build:
+    needs: check-version
+    if: ${{ needs.check-version.outputs.should-publish == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -33,10 +66,51 @@ jobs:
       - name: Delete useless dist/src
         run: rm -rf dist/src
 
-      - name: display dist folder
-        run: ls dist
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
 
-      - name: Publish package on NPM 📦
+    steps:
+      - name: Publish package on NPM
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  update-version:
+    needs: check-version
+    if: ${{ needs.check-version.outputs.should-update == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Update version to next patch
+        run: npm version patch
+
+  create-pr:
+    needs: update-version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create a pull request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update version to next patch"
+          title: "Update version to next patch"
+          body: "This PR updates the package version to the next patch version."
+          branch: update-version
+          base: main
