@@ -1,6 +1,13 @@
 name: Version Check and Publish
 
-on: [ push ]
+on:
+  push:
+    branches:
+      - main
+
+env:
+  should_publish: 'false'
+  should_update: 'false'
 
 jobs:
   check-version:
@@ -27,18 +34,17 @@ jobs:
         id: npm
         run: echo "::set-output name=version::$(npm view ${{ github.event.inputs.package-name }} version)"
 
-
-      - name: Compare versions and set output
+      - name: Compare versions and write to environment files
         run: |
           if [ "${{ steps.pkg.outputs.version }}" = "${{ steps.npm.outputs.version }}" ]; then
-            echo "::set-output name=should-update::true"
+            echo "should_update=true" >> $GITHUB_ENV
           else
-            echo "::set-output name=should-publish::true"
+            echo "should_publish=true" >> $GITHUB_ENV
           fi
 
   build:
     needs: check-version
-    if: ${{ needs.check-version.outputs.should-publish == 'true' }}
+    if: ${{ env.should_publish == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -77,7 +83,7 @@ jobs:
 
   update-version:
     needs: check-version
-    if: ${{ needs.check-version.outputs.should-update == 'true' }}
+    if: ${{ env.should_update == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
