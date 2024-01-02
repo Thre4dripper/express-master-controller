@@ -1,53 +1,55 @@
-# node-master-controller
+# express-master-controller
 
-node-master-controller is a powerful express middleware designed to help you create APIs and sockets super fast.
+express-master-controller is a powerful express middleware designed to help you create APIs and sockets super fast.
 It is a master-controller-based express package that provides a streamlined way to manage your routes and socket events.
 It also
 automates the creation of Swagger documentation for your express application
 
 ## Features
 
-- Easy creation of APIs and sockets
-- Automated Swagger documentation
-- Joi validation
-- TypeScript support
+-   Easy creation of APIs and sockets
+-   Automated Swagger documentation
+-   Joi validation
+-   TypeScript support
 
 ## Installation
 
 ```bash
-npm install node-master-controller
+npm install express-master-controller
 ```
 
 or
 
 ```bash
-yarn add node-master-controller
+yarn add express-master-controller
 ```
 
 ## Initialization
 
 ```typescript
-import { masterController } from 'node-master-controller'
+import { masterController } from 'express-master-controller'
 
 const app = express()
 
-app.use(masterController({
-    // path to the routes directory (required)
-    routesFolder: path.join(__dirname, 'routes'),
-    // swagger config (optional)
-    swaggerConfig: {
-        // swagger definition (required)
-        title: 'API Documentation',
-        description: 'API Documentation',
-        version: '1.0.0',
-        // swagger docs endpoint (optional)
-        swaggerDocsEndpoint: '/api-docs',
-        // if you want to give your swagger doc (optional)
-        swaggerDocPath: path.join(__dirname, 'swagger.json'),
-        // whether to modify your provided swagger doc or not (optional)
-        modifySwaggerDoc: true,
-    },
-}))
+app.use(
+    masterController({
+        // path to the routes directory (required)
+        routesFolder: path.join(__dirname, 'routes'),
+        // swagger config (optional)
+        swaggerConfig: {
+            // swagger definition (required)
+            title: 'API Documentation',
+            description: 'API Documentation',
+            version: '1.0.0',
+            // swagger docs endpoint (optional)
+            swaggerDocsEndpoint: '/api-docs',
+            // if you want to give your swagger doc (optional)
+            swaggerDocPath: path.join(__dirname, 'swagger.json'),
+            // whether to modify your provided swagger doc or not (optional)
+            modifySwaggerDoc: true,
+        },
+    })
+)
 
 app.listen(3000, () => {
     console.log('Server started')
@@ -56,25 +58,24 @@ app.listen(3000, () => {
 
 ### masterController Parameters
 
-- **routesFolder:** Absolute path to the routes directory (required)
-- **swaggerConfig:** Swagger configuration (optional), if not provided, no swagger documentation will be generated
-    - **title:** Swagger title (required)
-    - **description:** Swagger description (required)
-    - **version:** Swagger version (required)
-    - **swaggerDocsEndpoint:** Swagger docs endpoint (optional), default: `/api-docs`
-    - **swaggerDocPath:** Absolute path to the swagger doc file (optional)
-    - **modifySwaggerDoc:** Whether to modify your provided swagger doc or not (optional), default: `false`
+-   **routesFolder:** Absolute path to the routes directory (required)
+-   **swaggerConfig:** Swagger configuration (optional), if not provided, no swagger documentation will be generated
+    -   **title:** Swagger title (required)
+    -   **description:** Swagger description (required)
+    -   **version:** Swagger version (required)
+    -   **swaggerDocsEndpoint:** Swagger docs endpoint (optional), default: `/api-docs`
+    -   **swaggerDocPath:** Absolute path to the swagger doc file (optional)
+    -   **modifySwaggerDoc:** Whether to modify your provided swagger doc or not (optional), default: `false`
 
 ## Creating APIs
 
 ### Controller
 
 ```typescript
-import { MasterController, RequestBuilder, ResponseBuilder } from 'node-master-controller'
+import { MasterController, RequestBuilder, ResponseBuilder } from 'express-master-controller'
 import Joi from 'joi'
 
 class Controller extends MasterController<IParams, IQuery, IBody> {
-
     // swagger documetation for the api
     static doc() {
         return {
@@ -84,7 +85,7 @@ class Controller extends MasterController<IParams, IQuery, IBody> {
         }
     }
 
-    // add your validations here, 
+    // add your validations here,
     // rest of the swagger documentation will be generated automatically from the validation
     public static validate(): RequestBuilder {
         const payload = new RequestBuilder()
@@ -96,7 +97,7 @@ class Controller extends MasterController<IParams, IQuery, IBody> {
                 lastName: Joi.string().required(),
                 email: Joi.string().email().required(),
                 password: Joi.string().min(8).max(20).required(),
-            }),
+            })
         )
 
         // request query validation
@@ -104,20 +105,26 @@ class Controller extends MasterController<IParams, IQuery, IBody> {
             Joi.object().keys({
                 limit: Joi.number().required(),
                 offset: Joi.number().required(),
-            }),
+            })
         )
 
         // request params validation
         payload.addToParams(
             Joi.object().keys({
                 id: Joi.number().required(),
-            }),
+            })
         )
         return payload
     }
 
     // controller function
-    async restController(params: IParams, query: IQuery, body: IBody, headers: any, allData: any): Promise<any> {
+    async restController(
+        params: IParams,
+        query: IQuery,
+        body: IBody,
+        headers: any,
+        allData: any
+    ): Promise<any> {
         // your code here
         return new ResponseBuilder('Status', Response, 'Success Message')
     }
@@ -135,23 +142,23 @@ export default Controller
 
 #### Controller Generics
 
-- **IParams:** Request params interface/type
-- **IQuery:** Request query interface/type
-- **IBody:** Request body interface/type
+-   **IParams:** Request params interface/type
+-   **IQuery:** Request query interface/type
+-   **IBody:** Request body interface/type
 
 #### restController Parameters
 
-- **params:** Request params (eg. /user/:id)
-- **query:** Request query (eg. /user?limit=10&offset=0)
-- **body:** Request body
-- **headers:** Request headers
-- **allData:** All request data (all the above-combined + custom data from middlewares)
+-   **params:** Request params (eg. /user/:id)
+-   **query:** Request query (eg. /user?limit=10&offset=0)
+-   **body:** Request body
+-   **headers:** Request headers
+-   **allData:** All request data (all the above-combined + custom data from middlewares)
 
 #### socketController Parameters
 
-- **io:** Socket.io instance
-- **socket:** Socket instance
-- **payload:** Data sent from the client
+-   **io:** Socket.io instance
+-   **socket:** Socket instance
+-   **payload:** Data sent from the client
 
 ### Router File
 
@@ -161,7 +168,9 @@ import Controller from '../Controller'
 
 export default (app: express.Application) => {
     // REST Routes
-    Controller.get(app, '/user/:id', [/* Comma separated middlewares */])
+    Controller.get(app, '/user/:id', [
+        /* Comma separated middlewares */
+    ])
     Controller.post(app, '/user/:id', [])
     Controller.put(app, '/user/:id', [])
     Controller.delete(app, '/user/:id', [])
@@ -181,5 +190,5 @@ export default (app: express.Application) => {
 
 ### External Dependencies (You need to install these packages)
 
-- [joi](https://www.npmjs.com/package/joi) (For validation)
-- [socket.io](https://www.npmjs.com/package/socket.io) (For sockets)
+-   [joi](https://www.npmjs.com/package/joi) (For validation)
+-   [socket.io](https://www.npmjs.com/package/socket.io) (For sockets)

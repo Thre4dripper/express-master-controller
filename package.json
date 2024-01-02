@@ -1,5 +1,5 @@
 {
-  "name": "node-master-controller",
+  "name": "express-master-controller",
   "version": "1.0.18",
   "description": "Master Controller with automated swagger docs creation for node express app",
   "main": "dist/cjs/src/index.js",
@@ -10,7 +10,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Thre4dripper/node-master-controller.git"
+    "url": "https://github.com/Thre4dripper/express-master-controller.git"
   },
   "exports": {
     ".": {
