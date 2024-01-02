@@ -1,6 +1,6 @@
 # node-master-controller
 
-node-master-controller is a powerful npm package designed to help you create APIs and sockets super fast.
+node-master-controller is a powerful express middleware designed to help you create APIs and sockets super fast.
 It is a master-controller-based express package that provides a streamlined way to manage your routes and socket events.
 It also
 automates the creation of Swagger documentation for your express application
@@ -31,28 +31,39 @@ import { masterController } from 'node-master-controller'
 
 const app = express()
 
-// routersPath: routesPath,
-//     generateSwaggerDocs: true,
-//     swaggerDocsEndpoint: '/swagger',
-//     swaggerDocPath,
-//     modifySwaggerDoc
 app.use(masterController({
-    // make sute to use absolute path for the routes directory
-    routersPath: path.join(__dirname, 'routes'),
-    // whether to generate swagger docs or not
-    generateSwaggerDocs: true,
-    // if you want to give your swagger doc
-    swaggerDocPath: path.join(__dirname, 'swagger.json'),
-    // swagger docs endpoint
-    swaggerDocsEndpoint: '/api-docs',
-    // whether to modify your provided swagger doc or not
-    modifySwaggerDoc: true,
+    // path to the routes directory (required)
+    routesFolder: path.join(__dirname, 'routes'),
+    // swagger config (optional)
+    swaggerConfig: {
+        // swagger definition (required)
+        title: 'API Documentation',
+        description: 'API Documentation',
+        version: '1.0.0',
+        // swagger docs endpoint (optional)
+        swaggerDocsEndpoint: '/api-docs',
+        // if you want to give your swagger doc (optional)
+        swaggerDocPath: path.join(__dirname, 'swagger.json'),
+        // whether to modify your provided swagger doc or not (optional)
+        modifySwaggerDoc: true,
+    },
 }))
 
 app.listen(3000, () => {
     console.log('Server started')
 })
 ```
+
+### masterController Parameters
+
+- **routesFolder:** Absolute path to the routes directory (required)
+- **swaggerConfig:** Swagger configuration (optional), if not provided, no swagger documentation will be generated
+    - **title:** Swagger title (required)
+    - **description:** Swagger description (required)
+    - **version:** Swagger version (required)
+    - **swaggerDocsEndpoint:** Swagger docs endpoint (optional), default: `/api-docs`
+    - **swaggerDocPath:** Absolute path to the swagger doc file (optional)
+    - **modifySwaggerDoc:** Whether to modify your provided swagger doc or not (optional), default: `false`
 
 ## Creating APIs
 
@@ -142,7 +153,7 @@ export default Controller
 - **socket:** Socket instance
 - **payload:** Data sent from the client
 
-### Route File
+### Router File
 
 ```typescript
 import express from 'express'
@@ -150,10 +161,11 @@ import Controller from '../Controller'
 
 export default (app: express.Application) => {
     // REST Routes
-    Controller.get(app, '/user', [/* Comma separated middlewares */])
-    Controller.post(app, '/user', [])
+    Controller.get(app, '/user/:id', [/* Comma separated middlewares */])
+    Controller.post(app, '/user/:id', [])
     Controller.put(app, '/user/:id', [])
     Controller.delete(app, '/user/:id', [])
+    Controller.patch(app, '/user/:id', [])
 
     // Socket Events
     // Any payload you send from the client to this event will be available in the socketController function
@@ -161,7 +173,9 @@ export default (app: express.Application) => {
 }
 ```
 
-> **Note:** You don't need to import your route file to anywhere,
+> **Important**: Make sure to name your router file as `*.router.ts` or `*.router.js`
+
+> **Note:** You don't need to import your router file to anywhere,
 > put it in the routes directory, and it will be automatically
 > taken care by the package.
 
@@ -169,4 +183,3 @@ export default (app: express.Application) => {
 
 - [joi](https://www.npmjs.com/package/joi) (For validation)
 - [socket.io](https://www.npmjs.com/package/socket.io) (For sockets)
-

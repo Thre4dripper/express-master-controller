@@ -8,76 +8,81 @@ export enum SwaggerMethod {
     POST = 'post',
     PUT = 'put',
     DELETE = 'delete',
+    PATCH = 'patch',
 }
 
 interface Schema {
-    type?: string;
-    required?: string[];
-    properties?: { [property: string]: Schema };
-    format?: string;
-    minimum?: number;
-    example?: any;
-    additionalProperties?: boolean | Schema;
+    type?: string
+    required?: string[]
+    properties?: { [property: string]: Schema }
+    format?: string
+    minimum?: number
+    example?: any
+    additionalProperties?: boolean | Schema
 }
 
 interface Parameter {
-    name: string;
-    in: string;
-    required: boolean;
-    type?: string;
-    format?: string;
-    schema?: Schema;
+    name: string
+    in: string
+    required: boolean
+    type?: string
+    format?: string
+    schema?: Schema
 }
 
 interface Response {
-    description: string;
-    schema?: Schema;
+    description: string
+    schema?: Schema
 }
 
 interface Method {
-    tags: string[];
-    summary: string;
-    description: string;
-    operationId?: string;
-    produces: string[];
-    parameters?: Parameter[];
-    responses: { [responseCode: string]: Response };
+    tags: string[]
+    summary: string
+    description: string
+    operationId?: string
+    produces: string[]
+    parameters?: Parameter[]
+    responses: { [responseCode: string]: Response }
 }
 
 interface Path {
-    get?: Method;
-    post?: Method;
-    put?: Method;
-    delete?: Method;
+    get?: Method
+    post?: Method
+    put?: Method
+    delete?: Method
+    patch?: Method
 }
 
 interface Paths {
-    [path: string]: Path;
+    [path: string]: Path
 }
 
 interface SecurityDefinition {
-    type: string;
-    name: string;
-    in: string;
+    type: string
+    name: string
+    in: string
 }
 
 interface SwaggerDocument {
-    swagger: string;
+    swagger: string
     info: {
-        version: string;
-        title: string;
-        description: string;
-    };
-    schemes: string[];
-    consumes: string[];
-    produces: string[];
-    securityDefinitions: { [securityDefinition: string]: SecurityDefinition };
-    paths: Paths;
+        version: string
+        title: string
+        description: string
+    }
+    schemes: string[]
+    consumes: string[]
+    produces: string[]
+    securityDefinitions: { [securityDefinition: string]: SecurityDefinition }
+    paths: Paths
 }
 
-interface SwaggerConfigOptions {
-    path: string;
-    modify?: Boolean;
+export interface SwaggerConfigOptions {
+    title: string
+    description: string
+    version: string
+    swaggerDocPath?: string
+    modifySwaggerDoc?: Boolean
 }
 
 class SwaggerConfig {
@@ -85,12 +90,12 @@ class SwaggerConfig {
     private static swaggerPath: string
     private static swaggerModify: Boolean | undefined
 
-    static initSwagger(options?: SwaggerConfigOptions) {
-        if (options) {
-            const { path, modify } = options
-            this.swaggerPath = path
-            this.swaggerModify = modify
-            this.swaggerDocument = require(path)
+    static initSwagger(options: SwaggerConfigOptions) {
+        const { title, description, version, swaggerDocPath, modifySwaggerDoc } = options
+        if (swaggerDocPath) {
+            this.swaggerPath = swaggerDocPath
+            this.swaggerModify = modifySwaggerDoc
+            this.swaggerDocument = require(swaggerDocPath)
             this.swaggerDocument.paths = {}
 
             if (this.swaggerModify) {
@@ -100,9 +105,9 @@ class SwaggerConfig {
             this.swaggerDocument = {
                 swagger: '2.0',
                 info: {
-                    version: '1.0.0',
-                    title: 'Node Swagger API',
-                    description: 'Demonstrating how to describe a RESTful API with Swagger',
+                    title,
+                    description,
+                    version,
                 },
                 schemes: ['http', 'https'],
                 consumes: ['application/json'],
@@ -201,10 +206,11 @@ class SwaggerConfig {
     private static modifySwaggerDocument() {
         fs.writeFile(this.swaggerPath, JSON.stringify(this.swaggerDocument, null, 2), {
             flag: 'w',
-        }).then(() => {
+        })
+        .then(() => {
             console.log('Swagger document updated')
-
-        }).catch((err) => {
+        })
+        .catch((err) => {
             console.log('Error updating swagger document', err)
         })
     }

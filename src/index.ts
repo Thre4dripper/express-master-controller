@@ -6,14 +6,11 @@ import MasterController from './MasterController'
 import RequestBuilder from './RequestBuilder'
 import ResponseBuilder from './ResponseBuilder'
 import { NextFunction, Request, Response } from 'express'
-import SwaggerConfig from './config/swaggerConfig'
+import SwaggerConfig, { SwaggerConfigOptions } from './config/swaggerConfig'
 
 interface IMiddlewareConfig {
-    routersPath: string
-    generateSwaggerDocs: Boolean
-    swaggerDocsEndpoint?: string
-    swaggerDocPath?: string
-    modifySwaggerDoc?: boolean
+    routesFolder: string
+    swaggerConfig?: SwaggerConfigOptions & { swaggerDocsEndpoint?: string }
 }
 
 const isRequireSupported = () => {
@@ -70,13 +67,28 @@ const loadRouters = async (dir: string, app: express.Application) => {
 }
 
 const masterController =
-    ({ routersPath, generateSwaggerDocs, swaggerDocPath, swaggerDocsEndpoint, modifySwaggerDoc }: IMiddlewareConfig) =>
+    ({ routesFolder, swaggerConfig }: IMiddlewareConfig) =>
         async (req: Request, res: Response, next: NextFunction) => {
-            if (!routersPath) throw new Error('routersPath is required')
-            if (swaggerDocPath) SwaggerConfig.initSwagger({ path: swaggerDocPath, modify: modifySwaggerDoc })
-            else SwaggerConfig.initSwagger()
-            await loadRouters(routersPath, req.app)
-            if (generateSwaggerDocs) {
+            if (!routesFolder) throw new Error('routesFolder is required')
+
+            const {
+                title,
+                description,
+                version,
+                swaggerDocsEndpoint,
+                swaggerDocPath,
+                modifySwaggerDoc,
+            } = swaggerConfig || {}
+
+            SwaggerConfig.initSwagger({
+                title: title ?? 'Node Swagger API',
+                description: description ?? 'Demonstrating how to describe a RESTful API with Swagger',
+                version: version ?? '1.0.0',
+                swaggerDocPath,
+                modifySwaggerDoc,
+            })
+            await loadRouters(routesFolder, req.app)
+            if (swaggerConfig) {
                 req.app.use(
                     swaggerDocsEndpoint || '/api-docs',
                     swaggerUI.serve,
