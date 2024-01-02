@@ -39,7 +39,9 @@ jobs:
       - name: Compare versions and write to environment files
         id: compare_versions
         run: |
-          if [ "${{ steps.pkg.outputs.version }}" = "${{ steps.npm.outputs.version }}" ]; then
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          NPM_VERSION=$(npm view ${{ github.event.inputs.package-name }} version)
+          if [ "$CURRENT_VERSION" = "$NPM_VERSION" ]; then
             echo "should_update=true" >> $GITHUB_ENV
             echo "::set-output name=should_update::true"
           else
@@ -79,9 +81,17 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-
     steps:
+      - name: Check if version has been updated
+        id: check_version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          NPM_VERSION=$(npm view ${{ github.event.inputs.package-name }} version)
+          if [ "$CURRENT_VERSION" != "$NPM_VERSION" ]; then
+            echo "::set-output name=should_publish::true"
+          fi
       - name: Publish package on NPM
+        if: ${{ steps.check_version.outputs.should_publish == 'true' }}
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -110,15 +120,20 @@ jobs:
   create-pr:
     needs: update-version
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - name: Check if there are changes to commit
+        id: check_changes
+        run: |
+          if git diff --exit-code; then
+            echo "::set-output name=should_create_pr::false"
+          else
+            echo "::set-output name=should_create_pr::true"
+          fi
       - name: Create a pull request
+        if: ${{ steps.check_changes.outputs.should_create_pr == 'true' }}
         uses: peter-evans/create-pull-request@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.WORKFLOW_PR_TOKEN }}
           commit-message: "Update version to next patch"
           title: "Update version to next patch"
           body: "This PR updates the package version to the next patch version."
