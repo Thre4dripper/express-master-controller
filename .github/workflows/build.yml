@@ -1,6 +1,6 @@
 name: Version Check and Publish
 
-on: [push]
+on: [ push ]
 
 jobs:
   check-version:
@@ -26,8 +26,7 @@ jobs:
       - name: Get latest version from npm (configurable)
         id: npm
         run: echo "::set-output name=version::$(npm view ${{ github.event.inputs.package-name }} version)"
-        with:
-          package-name: express-master-controller
+
 
       - name: Compare versions and set output
         run: |
