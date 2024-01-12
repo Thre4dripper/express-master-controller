@@ -88,6 +88,8 @@ jobs:
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   commit-message: Update version to next patch
+                  delete-branch: true
+                  branch: update-version
                   title: Update version to next patch
                   body: |
                       This PR updates the version to the next patch.
