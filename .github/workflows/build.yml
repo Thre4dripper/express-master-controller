@@ -1,126 +1,124 @@
 name: Version Check and Publish
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 jobs:
-  check-version:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    check-version:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
+            - name: Use Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  registry-url: 'https://registry.npmjs.org'
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
 
-      - name: Compare versions and write to environment files
-        run: |
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          NPM_VERSION=$(npm view ${{ github.event.inputs.package-name }} version)
-          if [ "$CURRENT_VERSION" = "$NPM_VERSION" ]; then
-            echo "should_update=true" > env_vars
-          else
-            echo "should_publish=true" > env_vars
-          fi
-      - name: Upload environment variables
-        uses: actions/upload-artifact@v2
-        with:
-          name: env_vars
-          path: env_vars
+            - name: Compare versions and write to environment files
+              run: |
+                  CURRENT_VERSION=$(node -p "require('./package.json').version")
+                  NPM_VERSION=$(npm view express-master-controller version)
+                  if [ "$CURRENT_VERSION" = "$NPM_VERSION" ]; then
+                    echo "should_update=true" > env_vars
+                  else
+                    echo "should_publish=true" > env_vars
+                  fi
+            - name: Upload environment variables
+              uses: actions/upload-artifact@v2
+              with:
+                  name: env_vars
+                  path: env_vars
 
-  build:
-    needs: check-version
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download environment variables
-        uses: actions/download-artifact@v2
-        with:
-          name: env_vars
-      - name: Source environment variables
-        run: |
-          if [[ $(cat env_vars) == "should_publish=true" ]]; then
-            echo "should_publish=true" >> $GITHUB_ENV
-          fi
-      - name: Checkout code
-        uses: actions/checkout@v4
+    build:
+        needs: check-version
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download environment variables
+              uses: actions/download-artifact@v2
+              with:
+                  name: env_vars
+            - name: Source environment variables
+              run: |
+                  if [[ $(cat env_vars) == "should_publish=true" ]]; then
+                    echo "should_publish=true" >> $GITHUB_ENV
+                  fi
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
+            - name: Use Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  registry-url: 'https://registry.npmjs.org'
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
 
-      - name: Build
-        run: rm -rf dist && npm run build
+            - name: Build
+              run: rm -rf dist && npm run build
 
-      - name: Create package.json in dist/cjs and dist/esm
-        run: |
-          echo '{"type": "commonjs"}' > dist/cjs/package.json
-          echo '{"type": "module"}' > dist/esm/package.json
+            - name: Create package.json in dist/cjs and dist/esm
+              run: |
+                  echo '{"type": "commonjs"}' > dist/cjs/package.json
+                  echo '{"type": "module"}' > dist/esm/package.json
 
-      - name: Delete useless dist/src
-        run: rm -rf dist/src
+            - name: Delete useless dist/src
+              run: rm -rf dist/src
 
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Publish package on NPM
-        if: ${{ env.should_publish == 'true' }}
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    publish:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Publish package on NPM
+              run: npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  update-version:
-    needs: check-version
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download environment variables
-        uses: actions/download-artifact@v2
-        with:
-          name: env_vars
-      - name: Source environment variables
-        run: |
-          if [[ $(cat env_vars) == "should_update=true" ]]; then
-            echo "should_update=true" >> $GITHUB_ENV
-          fi
-      - name: Checkout code
-        uses: actions/checkout@v4
+    update-version:
+        needs: check-version
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download environment variables
+              uses: actions/download-artifact@v2
+              with:
+                  name: env_vars
+            - name: Source environment variables
+              run: |
+                  if [[ $(cat env_vars) == "should_update=true" ]]; then
+                    echo "should_update=true" >> $GITHUB_ENV
+                  fi
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
+            - name: Use Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  registry-url: 'https://registry.npmjs.org'
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
 
-      - name: Update version to next patch
-        run: npm version patch
+            - name: Update version to next patch
+              run: npm version patch
 
-  create-pr:
-    needs: update-version
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create a pull request
-        if: ${{ env.should_update == 'true' }}
-        uses: peter-evans/create-pull-request@v4
-        with:
-          token: ${{ secrets.WORKFLOW_PR_TOKEN }}
-          commit-message: "Update version to next patch"
-          title: "Update version to next patch"
-          body: "This PR updates the package version to the next patch version."
-          branch: update-version
-          base: main
+    create-pr:
+        needs: update-version
+        runs-on: ubuntu-latest
+        steps:
+            - name: Create a pull request
+              uses: peter-evans/create-pull-request@v4
+              with:
+                  token: ${{ secrets.WORKFLOW_PR_TOKEN }}
+                  commit-message: 'Update version to next patch'
+                  title: 'Update version to next patch'
+                  body: 'This PR updates the package version to the next patch version.'
+                  branch: update-version
+                  base: main
