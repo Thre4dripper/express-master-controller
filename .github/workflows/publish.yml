@@ -66,7 +66,7 @@ jobs:
         run: rm -rf dist/src
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: build
           path: build
@@ -74,14 +74,14 @@ jobs:
   publish:
     name: Publish
     needs: build
-    if: needs.build.outputs.should_publish == 'true'
+    if: needs.build.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Get build artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: build
           path: build
@@ -127,14 +127,15 @@ jobs:
           name: repo
 
       - name: Create Pull Request
-        run: |
-          curl --location 'https://api.github.com/repos/thre4dripper/express-master-controller/pulls' \
-          --header 'Content-Type: application/json' \
-          --header 'Authorization: Bearer ${{ secrets.WORKFLOW_PR_TOKEN }}' \
-          --data '{
-              "repo": "express-master-controller",
-              "title": "Update version to next patch",
-              "body": "This PR updates the version to the next patch It was automatically created by a GitHub Action.",
-              "head": "update-version-bot",
-              "base": "main"
-          }'
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.WORKFLOW_PR_TOKEN }}
+          commit-message: Update version to next patch
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          delete-branch: true
+          branch: update-version-bot
+          title: Update version to next patch
+          body: |
+            This PR updates the version to the next patch.
+            It was automatically created by a GitHub Action.
