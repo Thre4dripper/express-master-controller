@@ -74,7 +74,6 @@ jobs:
   publish:
     name: Publish
     needs: build
-    if: needs.build.outputs.should_publish == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -124,7 +123,6 @@ jobs:
   create-pr:
     name: Create PR
     needs: update-version
-    if: needs.update-version.outputs.should_update == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
