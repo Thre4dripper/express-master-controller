@@ -7,6 +7,7 @@ on:
 
 jobs:
   check-version:
+    name: Check version
     runs-on: ubuntu-latest
     outputs:
       should_update: ${{ steps.compare_versions.outputs.should_update }}
@@ -36,6 +37,7 @@ jobs:
           fi
 
   build:
+    name: Build
     needs: check-version
     if: needs.check-version.outputs.should_publish == 'true'
     runs-on: ubuntu-latest
@@ -63,8 +65,26 @@ jobs:
       - name: Delete useless dist/src
         run: rm -rf dist/src
 
-      - name: display dist folder
-        run: ls dist
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: build
+
+  publish:
+    name: Publish
+    needs: build
+    if: needs.build.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get build artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: build
 
       - name: Publish package on NPM
         run: npm publish
@@ -72,6 +92,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   update-version:
+    name: Update version
     needs: check-version
     if: needs.check-version.outputs.should_update == 'true'
     runs-on: ubuntu-latest
@@ -79,20 +100,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
       - name: Update version to next patch
         run: |
           git config --global user.email "ijlalahmad845@gmail.com"
           git config --global user.name "Ijlal Ahmad"
           npm version patch
+
+      - name: Delete node_modules
+        run: rm -rf node_modules
+
+      - name: Upload repo as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo
+          path: .
+
+  create-pr:
+    name: Create Pull Request
+    needs: update-version
+    if: needs.update-version.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download repo artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: repo
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
