@@ -115,25 +115,6 @@ jobs:
           git config --global user.name "Ijlal Ahmad"
           npm version patch
 
-      - name: Upload repo as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: repo
-          path: |
-            !**/node_modules
-            **
-
-  create-pr:
-    name: Create Pull Request
-    needs: update-version
-    if: needs.update-version.result == 'success'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download repo artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: repo
-
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
