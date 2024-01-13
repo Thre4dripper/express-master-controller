@@ -31,9 +31,9 @@ jobs:
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           NPM_VERSION=$(npm view express-master-controller version)
           if [ "$CURRENT_VERSION" = "$NPM_VERSION" ]; then
-            echo "::set-output name=should_update::true"
+            echo "should_update=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=should_publish::true"
+            echo "should_publish=true" >> $GITHUB_OUTPUT
           fi
 
   build:
