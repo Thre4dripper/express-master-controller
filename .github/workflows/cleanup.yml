@@ -1,0 +1,16 @@
+name: Clean up version update branch
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - main
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Branch
+        run: |
+          curl --location --request DELETE 'https://api.github.com/repos/thre4dripper/express-master-controller/git/refs/heads/update-version-bot' \
+          --header 'Authorization: Bearer ${{ secrets.WORKFLOW_PR_TOKEN }}'
