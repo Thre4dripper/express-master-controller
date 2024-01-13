@@ -119,7 +119,9 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: repo
-          path: .
+          path: |
+            !**/node_modules
+            **
 
   create-pr:
     name: Create Pull Request
