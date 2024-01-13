@@ -79,16 +79,19 @@ jobs:
 
       - name: Update version to next patch
         run: |
-          git config --global user.email "you@example.com"
-          git config --global user.name "Your Name"
+          git config --global user.email "ijlalahmad845@gmail.com"
+          git config --global user.name "Ijlal Ahmad"
           npm version patch
 
-      - name: Create a pull request
-        run: |
-          curl -L POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token ${{ secrets.WORKFLOW_PR_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/thre4dripper/express-master-controller/pulls \
-            -d '{"title":"Update version to next patch","head":"thre4dripper:update-version","base":"main"}'
-            
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.WORKFLOW_PR_TOKEN }}
+          commit-message: Update version to next patch
+          delete-branch: true
+          branch: update-version
+          title: Update version to next patch
+          body: |
+            This PR updates the version to the next patch.
+            It was automatically created by a GitHub Action.
+      
