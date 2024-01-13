@@ -7,6 +7,7 @@ on:
 
 jobs:
   check-version:
+    name: Check version
     runs-on: ubuntu-latest
     outputs:
       should_update: ${{ steps.compare_versions.outputs.should_update }}
@@ -36,6 +37,7 @@ jobs:
           fi
 
   build:
+    name: Build
     needs: check-version
     if: needs.check-version.outputs.should_publish == 'true'
     runs-on: ubuntu-latest
@@ -63,8 +65,26 @@ jobs:
       - name: Delete useless dist/src
         run: rm -rf dist/src
 
-      - name: display dist folder
-        run: ls dist
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: build
+
+  publish:
+    name: Publish
+    needs: build
+    if: needs.build.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get build artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: build
 
       - name: Publish package on NPM
         run: npm publish
@@ -72,6 +92,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   update-version:
+    name: Update version and create PR
     needs: check-version
     if: needs.check-version.outputs.should_update == 'true'
     runs-on: ubuntu-latest
