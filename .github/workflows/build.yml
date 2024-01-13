@@ -115,12 +115,11 @@ jobs:
           git config --global user.name "Ijlal Ahmad"
           npm version patch
 
-      - name: Push changes
-        run: |
-          git checkout -b update-version-bot
-          git add .
-          git commit -m "Update version to next patch"
-          git push origin update-version-bot
+      - name: Upload repo as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: repo
+          path: .
 
   create-pr:
     name: Create Pull Request
@@ -128,8 +127,10 @@ jobs:
     if: needs.update-version.result == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Download repo artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: repo
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
