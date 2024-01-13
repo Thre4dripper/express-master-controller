@@ -69,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: build
+          path: dist
 
   publish:
     name: Publish
@@ -84,7 +84,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build
-          path: build
+          path: dist
 
       - name: Publish package on NPM
         run: npm publish
@@ -119,8 +119,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: version-update
-          path: updated_version
-
+          path: package.json
 
   create-pr:
     name: Create PR
@@ -134,7 +133,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: version-update
-          path: updated_version
+          path: package.json
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
