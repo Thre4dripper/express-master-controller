@@ -55,6 +55,17 @@ jobs:
       - name: Build
         run: rm -rf dist && npm run build
 
+      - name: Create package.json in dist/cjs and dist/esm
+        run: |
+          echo '{"type": "commonjs"}' > dist/cjs/package.json
+          echo '{"type": "module"}' > dist/esm/package.json
+
+      - name: Delete useless dist/src
+        run: rm -rf dist/src
+
+      - name: display dist folder
+        run: ls dist
+
       - name: Publish package on NPM
         run: npm publish
         env:
@@ -88,6 +99,8 @@ jobs:
         with:
           token: ${{ secrets.WORKFLOW_PR_TOKEN }}
           commit-message: Update version to next patch
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           delete-branch: true
           branch: update-version-bot
           title: Update version to next patch
