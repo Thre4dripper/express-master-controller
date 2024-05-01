@@ -72,7 +72,13 @@ app.listen(3000, () => {
 ### Controller
 
 ```typescript
-import { MasterController, RequestBuilder, ResponseBuilder } from 'express-master-controller'
+import {
+    IRestControllerProps,
+    ISocketControllerProps,
+    MasterController,
+    RequestBuilder,
+    ResponseBuilder,
+} from 'express-master-controller'
 import Joi from 'joi'
 
 class Controller extends MasterController<IParams, IQuery, IBody> {
@@ -97,7 +103,7 @@ class Controller extends MasterController<IParams, IQuery, IBody> {
                 lastName: Joi.string().required(),
                 email: Joi.string().email().required(),
                 password: Joi.string().min(8).max(20).required(),
-            })
+            }),
         )
 
         // request query validation
@@ -105,32 +111,32 @@ class Controller extends MasterController<IParams, IQuery, IBody> {
             Joi.object().keys({
                 limit: Joi.number().required(),
                 offset: Joi.number().required(),
-            })
+            }),
         )
 
         // request params validation
         payload.addToParams(
             Joi.object().keys({
                 id: Joi.number().required(),
-            })
+            }),
         )
         return payload
     }
 
     // controller function
-    async restController(
-        params: IParams,
-        query: IQuery,
-        body: IBody,
-        headers: any,
-        allData: any
-    ): Promise<any> {
+    async restController({
+                             params,
+                             query,
+                             body,
+                             headers,
+                             allData,
+                         }: IRestControllerProps<null, null, ILoginUser>): Promise<ResponseBuilder> {
         // your code here
-        return new ResponseBuilder('Status', Response, 'Success Message')
+        return new ResponseBuilder(200, Response, 'Success Message')
     }
 
     // socket controller function
-    socketController(io: Server, socket: Socket, payload: any): any {
+    socketController({ io, socket, payload }: ISocketControllerProps): any {
         // your code here
         // Socket data will be available in payload, recieved from the client on socket event, which is setup in the route file
         // You can emit data back to the client using io.emit or socket.emit

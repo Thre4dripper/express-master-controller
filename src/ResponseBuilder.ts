@@ -1,7 +1,7 @@
 export default class ResponseBuilder {
-    response: { status: string; message: string; data: any }
+    response: { status: number; message: string; data: any }
 
-    constructor(status: string, data: any, message: string) {
+    constructor(status: number, data: any, message: string) {
         this.response = {
             status,
             data,
