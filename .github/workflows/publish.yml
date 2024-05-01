@@ -1,10 +1,5 @@
 name: Version Check and Publish
 
-#on:
-#  release:
-#    types:
-#      - published
-
 on:
   push:
     branches:
@@ -77,7 +72,7 @@ jobs:
             !node_modules/**
 
   publish:
-    name: Publish
+    name: Publish to NPM
     needs: build
     if: needs.build.result == 'success'
     runs-on: ubuntu-latest
@@ -100,15 +95,18 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   release:
-    name: Release
+    name: Create Release
     needs: publish
     if: needs.publish.result == 'success'
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.get_version.outputs.VERSION }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Get build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: .
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -132,6 +130,30 @@ jobs:
           release_name: Release v${{ steps.get_version.outputs.VERSION }}
           draft: false
           prerelease: false
+
+      - name: Create Release Notes
+        run: |
+          echo "Release v${{ steps.get_version.outputs.VERSION }}" > release-notes.md
+          echo "" >> release-notes.md
+          echo "## Changes" >> release-notes.md
+          echo "" >> release-notes.md
+          git log $(git describe --tags --abbrev=0)..HEAD --oneline --no-decorate --no-merges >> release-notes.md
+        shell: bash
+
+      - name: Upload Release Notes
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PR_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-notes.md
+          asset_name: release-notes.md
+          asset_content_type: text/markdown
+
+      - name: Create Release Asset
+        run: |
+          tar -czf express-master-controller-v${{ steps.get_version.outputs.VERSION }}.tgz dist
+        shell: bash
 
       - name: Upload Release Asset
         id: upload-release-asset
