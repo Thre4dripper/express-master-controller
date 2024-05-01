@@ -32,9 +32,12 @@ jobs:
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           NPM_VERSION=$(npm view express-master-controller version)
-          if [ "$CURRENT_VERSION" = "$NPM_VERSION" ]; then
+          
+          HIGHEST_VERSION=$(echo -e "$CURRENT_VERSION\n$NPM_VERSION" | sort -V | tail -n 1)
+          
+          if [ "$HIGHEST_VERSION" = "$NPM_VERSION" ]; then
             echo "should_update=true" >> $GITHUB_OUTPUT
-          else
+          elif [ "$HIGHEST_VERSION" = "$CURRENT_VERSION" ]; then
             echo "should_publish=true" >> $GITHUB_OUTPUT
           fi
 
@@ -116,8 +119,8 @@ jobs:
       - name: Get Version
         id: get_version
         run: |
-            VERSION=$(node -p "require('./package.json').version")
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create Release
         id: create_release
@@ -137,7 +140,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PR_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: .
+          asset_path: ./express-master-controller-v${{ steps.get_version.outputs.VERSION }}.tgz
           asset_name: express-master-controller-v${{ steps.get_version.outputs.VERSION }}.tgz
           asset_content_type: application/gzip
 
