@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  REPO_NAME: ${GITHUB_REPOSITORY#*/}
+
 jobs:
   check-version:
     name: Check version
@@ -26,7 +29,7 @@ jobs:
         id: compare_versions
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
-          NPM_VERSION=$(npm view express-master-controller version)
+          NPM_VERSION=$(npm view ${{ env.REPO_NAME }} version)
           
           HIGHEST_VERSION=$(echo -e "$CURRENT_VERSION\n$NPM_VERSION" | sort -V | tail -n 1)
           
@@ -151,9 +154,7 @@ jobs:
           asset_content_type: text/markdown
 
       - name: Create Release Asset
-        run: |
-          tar -czf express-master-controller-v${{ steps.get_version.outputs.VERSION }}.tgz dist
-        shell: bash
+        run: tar -czf release-v${{ steps.get_version.outputs.VERSION }}.tgz dist
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -162,8 +163,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./express-master-controller-v${{ steps.get_version.outputs.VERSION }}.tgz
-          asset_name: express-master-controller-v${{ steps.get_version.outputs.VERSION }}.tgz
+          asset_path: ./release-v${{ steps.get_version.outputs.VERSION }}.tgz
+          asset_name: release-v${{ steps.get_version.outputs.VERSION }}.tgz
           asset_content_type: application/gzip
 
   update-version:
