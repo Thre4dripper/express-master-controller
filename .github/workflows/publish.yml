@@ -104,14 +104,21 @@ jobs:
     outputs:
       VERSION: ${{ steps.get_version.outputs.VERSION }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+
       - name: Get Version
         id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        run: |
+            VERSION=$(node -p "require('./package.json').version")
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -130,7 +137,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PR_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./**
+          asset_path: .
           asset_name: express-master-controller-v${{ steps.get_version.outputs.VERSION }}.tgz
           asset_content_type: application/gzip
 
