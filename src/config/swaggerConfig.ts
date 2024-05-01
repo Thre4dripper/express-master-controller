@@ -207,12 +207,12 @@ class SwaggerConfig {
         fs.writeFile(this.swaggerPath, JSON.stringify(this.swaggerDocument, null, 2), {
             flag: 'w',
         })
-        .then(() => {
-            console.log('Swagger document updated')
-        })
-        .catch((err) => {
-            console.log('Error updating swagger document', err)
-        })
+            .then(() => {
+                console.log('Swagger document updated')
+            })
+            .catch((err) => {
+                console.log('Error updating swagger document', err)
+            })
     }
 
     private static exampleResponses() {

@@ -3,11 +3,11 @@ import Joi from 'joi'
 export enum PayloadType {
     PARAMS,
     QUERY,
-    BODY
+    BODY,
 }
 
 class RequestBuilder {
-    payload: { type: PayloadType, schema: Joi.ObjectSchema }[]
+    payload: { type: PayloadType; schema: Joi.ObjectSchema }[]
 
     constructor() {
         this.payload = []
