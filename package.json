@@ -37,7 +37,7 @@
   "author": "Ijlal Ahmad",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^4.19.2",
     "joi": "^17.11.0",
     "joi-to-swagger": "^6.2.0",
     "reflect-metadata": "^0.2.1",
