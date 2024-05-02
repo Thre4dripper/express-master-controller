@@ -3,7 +3,7 @@ name: Version Check and Publish
 on:
   push:
     branches:
-      - main
+      - master
 
 env:
   REPO_NAME: ${GITHUB_REPOSITORY#*/}

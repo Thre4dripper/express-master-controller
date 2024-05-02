@@ -11,6 +11,12 @@ export enum SwaggerMethod {
     PATCH = 'patch',
 }
 
+export interface ISwaggerDoc {
+    tags: string[]
+    summary: string
+    description: string
+}
+
 interface Schema {
     type?: string
     required?: string[]
@@ -77,25 +83,22 @@ interface SwaggerDocument {
     paths: Paths
 }
 
-export interface SwaggerConfigOptions {
-    title: string
-    description: string
-    version: string
-    swaggerDocPath?: string
-    modifySwaggerDoc?: Boolean
+interface SwaggerConfigOptions {
+    path: string
+    modify?: boolean
 }
 
 class SwaggerConfig {
     private static swaggerDocument: SwaggerDocument
     private static swaggerPath: string
-    private static swaggerModify: Boolean | undefined
+    private static swaggerModify: boolean | undefined
 
-    static initSwagger(options: SwaggerConfigOptions) {
-        const { title, description, version, swaggerDocPath, modifySwaggerDoc } = options
-        if (swaggerDocPath) {
-            this.swaggerPath = swaggerDocPath
-            this.swaggerModify = modifySwaggerDoc
-            this.swaggerDocument = require(swaggerDocPath)
+    static initSwagger(options?: SwaggerConfigOptions) {
+        if (options) {
+            const { path, modify } = options
+            this.swaggerPath = path
+            this.swaggerModify = modify
+            this.swaggerDocument = require(path)
             this.swaggerDocument.paths = {}
 
             if (this.swaggerModify) {
@@ -105,9 +108,9 @@ class SwaggerConfig {
             this.swaggerDocument = {
                 swagger: '2.0',
                 info: {
-                    title,
-                    description,
-                    version,
+                    version: '1.0.0',
+                    title: 'Node Swagger API',
+                    description: 'Demonstrating how to describe a RESTful API with Swagger',
                 },
                 schemes: ['http', 'https'],
                 consumes: ['application/json'],
@@ -129,7 +132,7 @@ class SwaggerConfig {
     }
 
     private static swaggerDocsFromJoiSchema(validationRules: RequestBuilder) {
-        let parameters: Parameter[] = []
+        const parameters: Parameter[] = []
 
         validationRules.payload.forEach((payload) => {
             if (payload.type === PayloadType.PARAMS) {
@@ -177,6 +180,9 @@ class SwaggerConfig {
     }
 
     static recordApi(path: string, method: SwaggerMethod, currentRef: typeof MasterController) {
+        if (currentRef.doc() === false) {
+            return
+        }
         const key = path.replace(/:(\w+)/g, '{$&}').replace(/:/g, '')
         const parameters = this.swaggerDocsFromJoiSchema(currentRef.validate())
         const paths: Paths = this.swaggerDocument.paths
@@ -190,9 +196,9 @@ class SwaggerConfig {
         }
 
         methodObj.parameters = parameters
-        methodObj.tags = currentRef.doc().tags
-        methodObj.summary = currentRef.doc().summary
-        methodObj.description = currentRef.doc().description
+        methodObj.tags = (currentRef.doc() as ISwaggerDoc).tags
+        methodObj.summary = (currentRef.doc() as ISwaggerDoc).summary
+        methodObj.description = (currentRef.doc() as ISwaggerDoc).description
         methodObj.operationId = currentRef.name
         pathObj[method] = methodObj
         paths[key] = pathObj

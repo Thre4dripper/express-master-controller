@@ -1,7 +1,7 @@
 import RequestBuilder, { PayloadType } from './RequestBuilder'
 import express, { Request, RequestHandler, Response, Router } from 'express'
 import asyncHandler from './AsyncHandler'
-import SwaggerConfig, { SwaggerMethod } from './config/swaggerConfig'
+import SwaggerConfig, { ISwaggerDoc, SwaggerMethod } from './config/swaggerConfig'
 import { Server, Socket } from 'socket.io'
 import ResponseBuilder from './ResponseBuilder'
 
@@ -9,12 +9,6 @@ interface IJoiErrors {
     query?: string[]
     param?: string[]
     body?: string[]
-}
-
-interface ISwaggerDoc {
-    tags: string[]
-    summary: string
-    description: string
 }
 
 interface ISocketClient {
@@ -44,6 +38,7 @@ export interface ISocketControllerProps {
  * to write the controller logic for the route or socket event respectively
  */
 class MasterController<P, Q, B> {
+    // start socket requests snippet
     private static socketRequests: ISocketClient[] = []
 
     /**
@@ -55,6 +50,8 @@ class MasterController<P, Q, B> {
     static getSocketRequests(): ISocketClient[] {
         return this.socketRequests
     }
+
+    // end socket requests snippet
 
     /**
      * @method MasterController.doc
@@ -68,7 +65,7 @@ class MasterController<P, Q, B> {
      * }
      * @returns {Object} swagger doc for a controller class {@link ISwaggerDoc}
      */
-    static doc(): ISwaggerDoc {
+    static doc(): ISwaggerDoc | boolean {
         return {
             tags: [],
             summary: '',
@@ -182,7 +179,10 @@ class MasterController<P, Q, B> {
             if (payload.type === PayloadType.PARAMS) {
                 // Validate params based on schema
                 const schema = payload.schema
-                const { error } = schema.validate(params, { abortEarly: false, allowUnknown: true })
+                const { error } = schema.validate(params, {
+                    abortEarly: false,
+                    allowUnknown: true,
+                })
                 if (error) {
                     // Push validation error messages to the respective array
                     joiErrors.param?.push(...error.details.map((err) => err.message))
