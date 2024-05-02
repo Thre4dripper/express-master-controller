@@ -28,6 +28,22 @@ jobs:
           cp template/src-typescript/app/utils/ResponseBuilder.ts src/ResponseBuilder.ts
           rm -rf template
 
+      - name: List files and folders
+        run: ls -la
+      - name: Fix Imports
+        run: |
+          cd src/config
+          sed -i 's|/app/utils||g' socketConfig.ts
+          sed -i 's|/app/utils||g' swaggerConfig.ts
+          cd ../
+          sed -i 's|../../config/swaggerConfig|./config/swaggerConfig|g' MasterController.ts
+          sed -i 's|StatusCodes|number|g' ResponseBuilder.ts
+          sed -i 's|import { StatusCodes } from '\''../enums/StatusCodes'\'';||g' ResponseBuilder.ts
+          cd ../
+
+      - name: Prettify
+        run: npx prettier --write src/**/*.ts
+
       - name: Push changes
         run: |
           git config --global user.name 'Update Bot'
