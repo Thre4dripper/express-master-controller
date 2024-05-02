@@ -2,11 +2,6 @@ name: New Update From Template
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to update to'
-        required: true
-        default: '1.0.0'
 
 jobs:
   update:
@@ -38,11 +33,13 @@ jobs:
           cd ../
           sed -i 's|../../config/swaggerConfig|./config/swaggerConfig|g' MasterController.ts
           sed -i 's|StatusCodes|number|g' ResponseBuilder.ts
-          sed -i 's|import { StatusCodes } from '\''../enums/StatusCodes'\'';||g' ResponseBuilder.ts
+          sed -i '1,2d' ResponseBuilder.ts
           cd ../
 
       - name: Prettify
-        run: npx prettier --write src/**/*.ts
+        run: |
+          yarn install --frozen-lockfile
+          yarn prettier
 
       - name: Push changes
         run: |
