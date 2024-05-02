@@ -20,12 +20,12 @@ jobs:
       - name: Update From Template
         run: |
           git clone https://github.com/Thre4dripper/NodeTs-Express-Service-Based-Template template
-          cp template/src-typescript/app/config/socketConfig.ts src/config/socketConfig.ts
-          cp template/src-typescript/app/config/swaggerConfig.ts src/config/swaggerConfig.ts
-          cp template/src-typescript/utils/MasterController.ts src/MasterController.ts
-          cp template/src-typescript/AsyncHandler.ts src/AsyncHandler.ts
-          cp template/src-typescript/RequestBuilder.ts src/RequestBuilder.ts
-          cp template/src-typescript/ResponseBuilder.ts src/ResponseBuilder.ts
+          cp template/src-typescript/config/socketConfig.ts src/config/socketConfig.ts
+          cp template/src-typescript/config/swaggerConfig.ts src/config/swaggerConfig.ts
+          cp template/src-typescript/app/utils/MasterController.ts src/MasterController.ts
+          cp template/src-typescript/app/utils/AsyncHandler.ts src/AsyncHandler.ts
+          cp template/src-typescript/app/utils/RequestBuilder.ts src/RequestBuilder.ts
+          cp template/src-typescript/app/utils/ResponseBuilder.ts src/ResponseBuilder.ts
           rm -rf template
 
       - name: Push changes
