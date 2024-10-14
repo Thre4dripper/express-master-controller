@@ -16,6 +16,11 @@ interface ISocketClient {
     masterController: MasterController<null, null, null>;
 }
 
+interface ICronJob {
+    cronPattern: string;
+    masterController: MasterController<null, null, null>;
+}
+
 /**
  * @class MasterController
  * @description This class is used to create a controller class
@@ -38,6 +43,21 @@ class MasterController<P, Q, B> {
     }
 
     // end socket requests snippet
+
+    // start cron job snippet
+    private static cronRequests: ICronJob[] = [];
+
+    /**
+     * @method MasterController.getCronRequests
+     * @description This static method is used to retrieve all the cron job instances for a controller class.
+     *
+     * @returns {ICronJob[]} - Returns an array of ICronJob objects, each representing a cron job instance
+     */
+    static getCronRequests(): ICronJob[] {
+        return this.cronRequests;
+    }
+
+    // end cron job snippet
 
     /**
      * @method MasterController.doc
@@ -125,9 +145,18 @@ class MasterController<P, Q, B> {
      * @protected This method is protected and can only be accessed by the child class.
      * @returns {any} Returns any value, usually the response or processing result.
      */
-    socketController(io: Server, socket: Socket, payload: any): any {
+    socketController(io: Server, socket: Socket, payload: any): void {
         // Logic for handling socket events goes here
         console.log(io, socket, payload);
+    }
+
+    /**
+     * @method MasterController.cronController
+     * @description Handles the logic for cron jobs.
+     */
+    cronController(): void {
+        // Implement cron job logic here
+        console.log('Cron job executed');
     }
 
     /**
@@ -323,6 +352,15 @@ class MasterController<P, Q, B> {
      */
     static socketIO(event: string) {
         this.socketRequests.push({ event, masterController: new this() });
+    }
+
+    /**
+     * @method MasterController.cronJob
+     * @description Registers a cron job for the controller class.
+     * @param {string} cronPattern - Cron pattern for the job.
+     */
+    static cronJob(cronPattern: string) {
+        this.cronRequests.push({ cronPattern, masterController: new this() });
     }
 }
 
