@@ -1,3 +1,4 @@
+import http from 'http';
 import express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
@@ -7,10 +8,16 @@ import RequestBuilder from './RequestBuilder';
 import ResponseBuilder from './ResponseBuilder';
 import { NextFunction, Request, Response } from 'express';
 import SwaggerConfig, { SwaggerConfigOptions } from './config/swaggerConfig';
-import { isRequireSupported } from './utils';
+import CronBuilder, { isRequireSupported } from './utils';
+import { CronWeekday } from './enums/CronWeekday';
+import { CronMonth } from './enums/CronMonth';
+import CronConfig from './config/cronConfig';
+import SocketConfig from './config/socketConfig';
 
 interface IMiddlewareConfig {
-    routesFolder: string;
+    routesFolder?: string;
+    cronJobsFolder?: string;
+    enableSocket?: boolean;
     swaggerConfig?: SwaggerConfigOptions & { swaggerDocsEndpoint?: string };
 }
 
@@ -26,13 +33,13 @@ const loadRouters = async (dir: string, app: express.Application) => {
             await loadRouters(fullPath, app);
         } else if (
             entry.isFile() &&
-            (entry.name.endsWith('.router.ts') ||
-                entry.name.endsWith('.router.js') ||
-                entry.name.endsWith('.router.mjs'))
+            (entry.name.endsWith('.routes.ts') ||
+                entry.name.endsWith('.routes.js') ||
+                entry.name.endsWith('.routes.mjs'))
         ) {
             let router;
             let errorMessage;
-            
+
             if (isRequireSupported()) {
                 router = require(fullPath);
                 errorMessage = 'router file must export a function by module.exports or exports.routerName';
@@ -58,9 +65,10 @@ const loadRouters = async (dir: string, app: express.Application) => {
 };
 
 const masterController =
-    ({ routesFolder, swaggerConfig }: IMiddlewareConfig) =>
+    ({ routesFolder, cronJobsFolder, enableSocket, swaggerConfig }: IMiddlewareConfig) =>
         async (req: Request, res: Response, next: NextFunction) => {
-            if (!routesFolder) throw new Error('routesFolder is required');
+            if (!routesFolder) console.warn('No routes folder provided');
+            if (!cronJobsFolder) console.warn('No cron jobs folder provided');
 
             const {
                 title,
@@ -78,7 +86,21 @@ const masterController =
                 swaggerDocPath,
                 modifySwaggerDoc,
             });
-            await loadRouters(routesFolder, req.app);
+
+            if (routesFolder)
+                await loadRouters(routesFolder, req.app);
+            if (cronJobsFolder)
+                await CronConfig.InitCronJobs(cronJobsFolder);
+
+            if (enableSocket) {
+                const httpServer = http.createServer(req.app);
+                const io = SocketConfig.init(httpServer);
+
+                io.on('connection', (socket) => {
+                    SocketConfig.socketListener(io, socket);
+                });
+            }
+
             if (swaggerConfig) {
                 req.app.use(
                     swaggerDocsEndpoint || '/api-docs',
@@ -89,4 +111,4 @@ const masterController =
 
             next();
         };
-export { masterController, MasterController, RequestBuilder, ResponseBuilder };
+export { masterController, MasterController, RequestBuilder, ResponseBuilder, CronBuilder, CronMonth, CronWeekday };
