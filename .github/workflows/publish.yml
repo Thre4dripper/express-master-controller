@@ -151,6 +151,14 @@ jobs:
         with:
           token: ${{ secrets.WORKFLOW_TOKEN }}
 
+      - name: Loop until versions match
+        run: |
+          while [ "$(npm view ${{ env.REPO_NAME }} version)" != "$(node -p "require('./package.json').version")" ]; do
+            git config --global user.name 'Version Bot'
+            git config --global user.email 'versionbot@gmail.com'
+            npm version patch -m "Update version to %s"
+          done
+
       - name: Update version to next patch
         run: |
           git config --global user.name 'Version Bot'

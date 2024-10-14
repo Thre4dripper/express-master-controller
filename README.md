@@ -7,10 +7,10 @@ automates the creation of Swagger documentation for your express application
 
 ## Features
 
--   Easy creation of APIs and sockets
--   Automated Swagger documentation
--   Joi validation
--   TypeScript support
+- Easy creation of APIs and sockets
+- Automated Swagger documentation
+- Joi validation
+- TypeScript support
 
 ## Installation
 
@@ -27,16 +27,20 @@ yarn add express-master-controller
 ## Initialization
 
 ```typescript
-import { masterController } from 'express-master-controller'
+import { masterController } from 'express-master-controller';
 
-const app = express()
+const app = express();
 
 app.use(
-    masterController({
-        // path to the routes directory (required)
-        routesFolder: path.join(__dirname, 'routes'),
-        // swagger config (optional)
-        swaggerConfig: {
+        masterController({
+          // path to the routes directory (optional)
+          routesFolder: path.join(__dirname, 'routes'),
+          // path to the cron directory (optional)
+          cronFolder: path.join(__dirname, 'cron'),
+          // whether to enable sockets or not (optional)
+          enableSockets: true,
+          // swagger config (optional)
+          swaggerConfig: {
             // swagger definition (required)
             title: 'API Documentation',
             description: 'API Documentation',
@@ -47,25 +51,25 @@ app.use(
             swaggerDocPath: path.join(__dirname, 'swagger.json'),
             // whether to modify your provided swagger doc or not (optional)
             modifySwaggerDoc: true,
-        },
-    })
-)
+          },
+        }),
+);
 
 app.listen(3000, () => {
-    console.log('Server started')
-})
+  console.log('Server started');
+});
 ```
 
 ### masterController Parameters
 
--   **routesFolder:** Absolute path to the routes directory (required)
--   **swaggerConfig:** Swagger configuration (optional), if not provided, no swagger documentation will be generated
-    -   **title:** Swagger title (required)
-    -   **description:** Swagger description (required)
-    -   **version:** Swagger version (required)
-    -   **swaggerDocsEndpoint:** Swagger docs endpoint (optional), default: `/api-docs`
-    -   **swaggerDocPath:** Absolute path to the swagger doc file (optional)
-    -   **modifySwaggerDoc:** Whether to modify your provided swagger doc or not (optional), default: `false`
+- **routesFolder:** Absolute path to the routes directory (required)
+- **swaggerConfig:** Swagger configuration (optional), if not provided, no swagger documentation will be generated
+    - **title:** Swagger title (required)
+    - **description:** Swagger description (required)
+    - **version:** Swagger version (required)
+    - **swaggerDocsEndpoint:** Swagger docs endpoint (optional), default: `/api-docs`
+    - **swaggerDocPath:** Absolute path to the swagger doc file (optional)
+    - **modifySwaggerDoc:** Whether to modify your provided swagger doc or not (optional), default: `false`
 
 ## Creating APIs
 
@@ -73,13 +77,11 @@ app.listen(3000, () => {
 
 ```typescript
 import {
-    IRestControllerProps,
-    ISocketControllerProps,
     MasterController,
     RequestBuilder,
     ResponseBuilder,
-} from 'express-master-controller'
-import Joi from 'joi'
+} from 'express-master-controller';
+import Joi from 'joi';
 
 class Controller extends MasterController<IParams, IQuery, IBody> {
     // swagger documetation for the api
@@ -88,13 +90,13 @@ class Controller extends MasterController<IParams, IQuery, IBody> {
             tags: ['User'],
             summary: 'Register User',
             description: 'Register User',
-        }
+        };
     }
 
     // add your validations here,
     // rest of the swagger documentation will be generated automatically from the validation
     public static validate(): RequestBuilder {
-        const payload = new RequestBuilder()
+        const payload = new RequestBuilder();
 
         // request body validation
         payload.addToBody(
@@ -104,7 +106,7 @@ class Controller extends MasterController<IParams, IQuery, IBody> {
                 email: Joi.string().email().required(),
                 password: Joi.string().min(8).max(20).required(),
             }),
-        )
+        );
 
         // request query validation
         payload.addToQuery(
@@ -112,59 +114,63 @@ class Controller extends MasterController<IParams, IQuery, IBody> {
                 limit: Joi.number().required(),
                 offset: Joi.number().required(),
             }),
-        )
+        );
 
         // request params validation
         payload.addToParams(
             Joi.object().keys({
                 id: Joi.number().required(),
             }),
-        )
-        return payload
+        );
+        return payload;
     }
 
     // controller function
-    async restController({
-                             params,
-                             query,
-                             body,
-                             headers,
-                             allData,
-                         }: IRestControllerProps<null, null, ILoginUser>): Promise<ResponseBuilder> {
+    async restController(
+        params: IParams,
+        query: IQuery,
+        body: IBody,
+        headers: any,
+        allData: any): Promise<ResponseBuilder> {
         // your code here
-        return new ResponseBuilder(200, Response, 'Success Message')
+        return new ResponseBuilder(200, Response, 'Success Message');
     }
 
     // socket controller function
-    socketController({ io, socket, payload }: ISocketControllerProps): any {
+    socketController(io: Server, socket: Socket, payload: any): void {
         // your code here
         // Socket data will be available in payload, recieved from the client on socket event, which is setup in the route file
         // You can emit data back to the client using io.emit or socket.emit
     }
+
+    // cron controller function
+    cronController(): void {
+        // your scheduled code here (if any)
+    }
 }
 
-export default Controller
+export default Controller;
 ```
 
 #### Controller Generics
 
--   **IParams:** Request params interface/type
--   **IQuery:** Request query interface/type
--   **IBody:** Request body interface/type
+- **IParams:** Request params interface/type
+- **IQuery:** Request query interface/type
+- **IBody:** Request body interface/type
 
 #### restController Parameters
 
--   **params:** Request params (eg. /user/:id)
--   **query:** Request query (eg. /user?limit=10&offset=0)
--   **body:** Request body
--   **headers:** Request headers
--   **allData:** All request data (all the above-combined + custom data from middlewares)
+- **params:** Request params (eg. /user/:id)
+- **query:** Request query (eg. /user?limit=10&offset=0)
+- **body:** Request body
+- **headers:** Request headers
+- **allData:** All request data (all the above-combined + custom data from middlewares)
 
 #### socketController Parameters
 
--   **io:** Socket.io instance
--   **socket:** Socket instance
--   **payload:** Data sent from the client
+- **io:** Socket.io instance
+- **socket:** Socket instance
+- **payload:** Data sent from the client
 
 ### Router File
 
@@ -188,13 +194,49 @@ export default (app: express.Application) => {
 }
 ```
 
-> **Important**: Make sure to name your router file as `*.router.ts` or `*.router.js`
+> **Important**: Make sure to name your router file as `*.routes.ts` or `*.routes.js`
 
 > **Note:** You don't need to import your router file to anywhere,
 > put it in the routes directory, and it will be automatically
 > taken care by the package.
 
+### Cron File
+
+```typescript
+import { MasterController, CronBuilder, CronMonth, CronWeekday } from 'express-master-controller';
+
+class DemoCron extends MasterController<null, null, null> {
+    cronController() {
+        console.log('Cron job is running');
+    }
+}
+
+// Unix Crontab format
+DemoCron.cronJob('*/5 * * * * *');
+
+// Using CronBuilder
+DemoCron.cronJob(
+    new CronBuilder()
+    .every()
+    .second()
+    .every()
+    .specificMinute([10, 20, 30])
+    .every()
+    .dayOfMonth(CronMonth.January)
+    .every()
+    .dayOfWeek(CronWeekday.Friday)
+    .build(),
+);
+```
+
+> **Important**: Make sure to name your cron file as `*.cron.ts` or `*.cron.js`
+
+> **Note:** You don't need to import your cron file to anywhere,
+> put it in cron directory, and it will be automatically
+> taken care by the package.
+
 ### External Dependencies (You need to install these packages)
 
--   [joi](https://www.npmjs.com/package/joi) (For validation)
--   [socket.io](https://www.npmjs.com/package/socket.io) (For sockets)
+- [joi](https://www.npmjs.com/package/joi) (For validation)
+- [socket.io](https://www.npmjs.com/package/socket.io) (For sockets)
+- [cron](https://www.npmjs.com/package/cron) (For cron jobs)
