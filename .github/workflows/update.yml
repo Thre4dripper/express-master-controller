@@ -48,8 +48,8 @@ jobs:
           # remove the first two lines
           sed -i '1,2d' ResponseBuilder.ts
           
-          # replace ../enums/ with ./enums globally
-          sed -i 's|../enums/|./enums|g' CronBuilder.ts
+          # replace ../enums/ with ./enums/ globally
+          sed -i 's|../enums/|./enums/|g' CronBuilder.ts
           cd ../
 
       - name: Prettify
