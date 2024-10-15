@@ -1,6 +1,6 @@
 {
   "name": "express-master-controller",
-  "version": "1.0.35",
+  "version": "1.0.36",
   "description": "Master Controller with automated swagger docs creation for node express app",
   "main": "dist/cjs/src/index.js",
   "types": "dist/types/src/index.d.ts",

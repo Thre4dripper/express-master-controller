@@ -27,6 +27,7 @@ jobs:
           cp template/src-typescript/app/utils/CronBuilder.ts src/CronBuilder.ts
           cp template/src-typescript/app/enums/CronMonth.ts src/enums/CronMonth.ts
           cp template/src-typescript/app/enums/CronWeekday.ts src/enums/CronWeekday.ts
+          rm -rf template
 
       - name: Fix Imports
         run: |
