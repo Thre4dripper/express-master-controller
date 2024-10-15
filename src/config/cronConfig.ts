@@ -44,7 +44,7 @@ class CronConfig {
                         client.masterController.cronController();
                     });
                     cron.start();
-                })(),
+                })()
             );
         });
     };

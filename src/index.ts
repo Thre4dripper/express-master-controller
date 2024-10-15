@@ -43,11 +43,13 @@ const loadRouters = async (dir: string, app: express.Application) => {
 
             if (isRequireSupported()) {
                 router = require(fullPath);
-                errorMessage = 'router file must export a function by module.exports or exports.routerName';
+                errorMessage =
+                    'router file must export a function by module.exports or exports.routerName';
             } else {
                 const fileUrl = new URL('file:///' + fullPath);
                 router = await import(fileUrl.href);
-                errorMessage = 'router file must export a function by export default or export const routerName';
+                errorMessage =
+                    'router file must export a function by export default or export const routerName';
             }
 
             if (typeof router === 'function') {
@@ -67,49 +69,55 @@ const loadRouters = async (dir: string, app: express.Application) => {
 
 const masterController =
     ({ routesFolder, cronJobsFolder, enableSocket, swaggerConfig }: IMiddlewareConfig) =>
-        async (req: Request, res: Response, next: NextFunction) => {
-            if (!routesFolder) console.warn('No routes folder provided');
-            if (!cronJobsFolder) console.warn('No cron jobs folder provided');
+    async (req: Request, res: Response, next: NextFunction) => {
+        if (!routesFolder) console.warn('No routes folder provided');
+        if (!cronJobsFolder) console.warn('No cron jobs folder provided');
 
-            const {
-                title,
-                description,
-                version,
-                swaggerDocsEndpoint,
-                swaggerDocPath,
-                modifySwaggerDoc,
-            } = swaggerConfig || {};
+        const {
+            title,
+            description,
+            version,
+            swaggerDocsEndpoint,
+            swaggerDocPath,
+            modifySwaggerDoc,
+        } = swaggerConfig || {};
 
-            SwaggerConfig.initSwagger({
-                title: title ?? 'Node Swagger API',
-                description: description ?? 'Demonstrating how to describe a RESTful API with Swagger',
-                version: version ?? '1.0.0',
-                swaggerDocPath,
-                modifySwaggerDoc,
+        SwaggerConfig.initSwagger({
+            title: title ?? 'Node Swagger API',
+            description: description ?? 'Demonstrating how to describe a RESTful API with Swagger',
+            version: version ?? '1.0.0',
+            swaggerDocPath,
+            modifySwaggerDoc,
+        });
+
+        if (routesFolder) await loadRouters(routesFolder, req.app);
+        if (cronJobsFolder) await CronConfig.InitCronJobs(cronJobsFolder);
+
+        if (enableSocket) {
+            const httpServer = http.createServer(req.app);
+            const io = SocketConfig.init(httpServer);
+
+            io.on('connection', (socket) => {
+                SocketConfig.socketListener(io, socket);
             });
+        }
 
-            if (routesFolder)
-                await loadRouters(routesFolder, req.app);
-            if (cronJobsFolder)
-                await CronConfig.InitCronJobs(cronJobsFolder);
+        if (swaggerConfig) {
+            req.app.use(
+                swaggerDocsEndpoint || '/api-docs',
+                swaggerUI.serve,
+                swaggerUI.setup(SwaggerConfig.getSwaggerDocument())
+            );
+        }
 
-            if (enableSocket) {
-                const httpServer = http.createServer(req.app);
-                const io = SocketConfig.init(httpServer);
-
-                io.on('connection', (socket) => {
-                    SocketConfig.socketListener(io, socket);
-                });
-            }
-
-            if (swaggerConfig) {
-                req.app.use(
-                    swaggerDocsEndpoint || '/api-docs',
-                    swaggerUI.serve,
-                    swaggerUI.setup(SwaggerConfig.getSwaggerDocument()),
-                );
-            }
-
-            next();
-        };
-export { masterController, MasterController, RequestBuilder, ResponseBuilder, CronBuilder, CronMonth, CronWeekday };
+        next();
+    };
+export {
+    masterController,
+    MasterController,
+    RequestBuilder,
+    ResponseBuilder,
+    CronBuilder,
+    CronMonth,
+    CronWeekday,
+};
