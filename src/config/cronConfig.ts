@@ -3,32 +3,26 @@ import asyncHandler from '../AsyncHandler';
 import { CronJob } from 'cron';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { isRequireSupported } from '../utils';
 
 class CronConfig {
     /**
      * @description Method to initialize the cron jobs
      * @param dir - The directory to search for cron jobs
+     * @param loadCrons - lambda function to load the cron jobs from the directory
      */
-    static InitCronJobs = async (dir: string) => {
+    static InitCronJobs = async (dir: string, loadCrons: (pathToCron: string) => void) => {
         const entries = await fs.readdir(dir, { withFileTypes: true });
 
         for (const entry of entries) {
             const fullPath = path.join(dir, entry.name);
 
             if (entry.isDirectory()) {
-                await CronConfig.InitCronJobs(fullPath);
+                await CronConfig.InitCronJobs(fullPath, loadCrons);
             } else if (
                 entry.isFile() &&
                 (entry.name.endsWith('.cron.ts') || entry.name.endsWith('.cron.js'))
             ) {
-                // require(fullPath);
-                if (isRequireSupported()) {
-                    require(fullPath);
-                } else {
-                    const fileUrl = new URL('file:///' + fullPath);
-                    await import(fileUrl.href);
-                }
+                loadCrons(fullPath);
             }
         }
     };

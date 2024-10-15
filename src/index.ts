@@ -8,7 +8,6 @@ import RequestBuilder from './RequestBuilder';
 import ResponseBuilder from './ResponseBuilder';
 import { NextFunction, Request, Response } from 'express';
 import SwaggerConfig, { SwaggerConfigOptions } from './config/swaggerConfig';
-import { isRequireSupported } from './utils';
 import CronBuilder from './CronBuilder';
 import { CronWeekday } from './enums/CronWeekday';
 import { CronMonth } from './enums/CronMonth';
@@ -21,6 +20,15 @@ interface IMiddlewareConfig {
     enableSocket?: boolean;
     swaggerConfig?: SwaggerConfigOptions & { swaggerDocsEndpoint?: string };
 }
+
+const isRequireSupported = () => {
+    try {
+        require('fs');
+        return true;
+    } catch (error) {
+        return false;
+    }
+};
 
 const loadRouters = async (dir: string, app: express.Application) => {
     //load all routers from dir and sub dir
@@ -91,7 +99,18 @@ const masterController =
         });
 
         if (routesFolder) await loadRouters(routesFolder, req.app);
-        if (cronJobsFolder) await CronConfig.InitCronJobs(cronJobsFolder);
+        if (cronJobsFolder)
+            await CronConfig.InitCronJobs(cronJobsFolder, async (pathToCron: string) => {
+                // configurable import statement to load all the cron jobs before starting server
+                // This lambda function is called for each cron job file found
+
+                if (isRequireSupported()) {
+                    require(pathToCron);
+                } else {
+                    const fileUrl = new URL('file:///' + pathToCron);
+                    await import(fileUrl.href);
+                }
+            });
 
         if (enableSocket) {
             const httpServer = http.createServer(req.app);
