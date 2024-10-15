@@ -4,15 +4,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  update:
+  check-changes:
     runs-on: ubuntu-latest
+    outputs:
+      should_update: ${{ steps.check_changes.outputs.should_update }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.WORKFLOW_TOKEN }}
 
-      - name: Update From Template
+      - name: Fetch Template
         run: |
           git clone https://github.com/Thre4dripper/NodeTs-Express-Service-Based-Template template
           cp template/src-typescript/config/socketConfig.ts src/config/socketConfig.ts
@@ -25,25 +27,65 @@ jobs:
           cp template/src-typescript/app/utils/CronBuilder.ts src/CronBuilder.ts
           cp template/src-typescript/app/enums/CronMonth.ts src/enums/CronMonth.ts
           cp template/src-typescript/app/enums/CronWeekday.ts src/enums/CronWeekday.ts
-          rm -rf template
 
-      - name: List files and folders
-        run: ls -la
       - name: Fix Imports
         run: |
           cd src/config
+          
+          # replace /app/utils with nothing globally
           sed -i 's|/app/utils||g' socketConfig.ts
           sed -i 's|/app/utils||g' swaggerConfig.ts
+          sed -i 's|/app/utils||g' cronConfig.ts
           cd ../
+          
+          # replace ../../config/swaggerConfig with ./config/swaggerConfig globally
           sed -i 's|../../config/swaggerConfig|./config/swaggerConfig|g' MasterController.ts
+          
+          # replace StatusCodes with number globally
           sed -i 's|StatusCodes|number|g' ResponseBuilder.ts
+          
+          # remove the first two lines
           sed -i '1,2d' ResponseBuilder.ts
+          
+          # replace ../enums/ with ./enums globally
+          sed -i 's|../enums/|./enums|g' CronBuilder.ts
           cd ../
 
       - name: Prettify
         run: |
           yarn install --frozen-lockfile
           yarn prettier
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          git diff --exit-code || echo "should_update=true" >> $GITHUB_OUTPUT
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            ./**
+            !node_modules/**
+
+      - name: List files and folders
+        run: ls -la
+
+  update:
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.should_update == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
 
       - name: Push changes
         run: |
