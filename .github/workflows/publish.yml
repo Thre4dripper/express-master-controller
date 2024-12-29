@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+  issues: write
+
 env:
   REPO_NAME: ${GITHUB_REPOSITORY#*/}
 
@@ -13,7 +18,7 @@ jobs:
     name: Check Build
     runs-on: ubuntu-latest
     outputs:
-        should_continue: ${{ steps.check_build.outputs.should_continue }}
+      should_continue: ${{ steps.check_build.outputs.should_continue }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -123,9 +128,21 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Publish package on NPM
-        run: npm publish
+        run: |
+          echo "Publishing to NPM"
+          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to Github Packages
+        run: |
+          echo "Configuring for Github Packages"
+          jq ".name = \"@thre4dripper/${{ env.REPO_NAME }}\"" package.json > package.json.tmp && mv package.json.tmp package.json                
+          npm config set //npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}
+          npm publish --registry=https://npm.pkg.github.com --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release:
     name: Create Release

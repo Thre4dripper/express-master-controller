@@ -24,7 +24,7 @@
     "finalise": "echo {\"type\": \"commonjs\"} > dist/cjs/package.json && echo {\"type\": \"module\"} > dist/esm/package.json",
     "build": "yarn transpile && yarn esm-fix && yarn finalise",
     "start": "ts-node src/index.ts",
-    "prettier": "prettier --write src/**/*.ts"
+    "format": "prettier --write src/**/*.ts"
   },
   "keywords": [
     "Node",

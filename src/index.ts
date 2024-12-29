@@ -9,7 +9,7 @@ import ResponseBuilder from './ResponseBuilder';
 import { NextFunction, Request, Response } from 'express';
 import SwaggerConfig, { SwaggerConfigOptions } from './config/swaggerConfig';
 import CronBuilder from './CronBuilder';
-import { CronMonth,CronWeekday } from './enums/CronJob';
+import { CronMonth, CronWeekday } from './enums/CronJob';
 import CronConfig from './config/cronConfig';
 import SocketConfig from './config/socketConfig';
 
