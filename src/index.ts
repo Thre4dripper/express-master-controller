@@ -139,3 +139,19 @@ export {
     CronMonth,
     CronWeekday,
 };
+export { GrpcClientFactory } from './GrpcClientFactory';
+export { executeGrpcMiddlewares } from './GrpcMiddleware';
+export type { GrpcCallContext, GrpcMiddleware } from './GrpcMiddleware';
+export { default as logger, createLogger } from './Logger';
+export {
+    CustomErrorHandler,
+    RestCustomErrorHandler,
+    GrpcCustomErrorHandler,
+    SocketCustomErrorHandler,
+    CronCustomErrorHandler,
+    customErrorHandler,
+    grpcCustomErrorHandler,
+    httpToGrpcStatus,
+    ValidationError,
+} from './CustomErrorHandler';
+export { StatusCodes } from './enums/StatusCodes';

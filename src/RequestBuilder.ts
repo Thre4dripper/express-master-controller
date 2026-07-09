@@ -4,6 +4,7 @@ export enum PayloadType {
     PARAMS,
     QUERY,
     BODY,
+    GRPC_PAYLOAD,
 }
 
 class RequestBuilder {
@@ -23,6 +24,17 @@ class RequestBuilder {
 
     addToBody(payload: Joi.ObjectSchema) {
         this.payload.push({ type: PayloadType.BODY, schema: payload });
+    }
+
+    addToGrpcPayload(payload: Joi.ObjectSchema) {
+        this.payload.push({ type: PayloadType.GRPC_PAYLOAD, schema: payload });
+    }
+
+    getGrpcSchema(): Joi.ObjectSchema | undefined {
+        const grpcPayload = this.payload.find(
+            (payload) => payload.type === PayloadType.GRPC_PAYLOAD
+        );
+        return grpcPayload?.schema;
     }
 
     get get() {

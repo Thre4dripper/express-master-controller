@@ -37,10 +37,13 @@
   "author": "Ijlal Ahmad",
   "license": "MIT",
   "dependencies": {
+    "@grpc/grpc-js": "^1.11.3",
     "cron": "^3.1.7",
     "express": "^4.21.1",
     "joi": "^17.13.3",
     "joi-to-swagger": "^6.2.0",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.3.0",
     "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.0",
     "swagger-ui-express": "^5.0.1"
