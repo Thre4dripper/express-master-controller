@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
   packages: write
   issues: write
 
@@ -35,9 +36,11 @@ jobs:
       - name: Build
         id: check_build
         run: |
-          rm -rf dist
-          yarn build || echo "should_continue=false" >> $GITHUB_OUTPUT
-          echo "should_continue=true" >> $GITHUB_OUTPUT
+          if yarn build; then
+            echo "should_continue=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_continue=false" >> $GITHUB_OUTPUT
+          fi
 
   check-version:
     name: Check version
@@ -91,15 +94,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build
-        run: |
-          rm -rf dist
-          yarn build
-          rm -rf dist/src
-
-      - name: Create package.json in dist/cjs and dist/esm
-        run: |
-          echo '{"type": "commonjs"}' > dist/cjs/package.json
-          echo '{"type": "module"}' > dist/esm/package.json
+        run: yarn build
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
@@ -124,16 +119,18 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Publish package on NPM
+      - name: Check npm trusted publishing runtime
+        run: |
+          node --version
+          npm --version
+
+      - name: Publish package on NPM with trusted publishing
         run: |
           echo "Publishing to NPM"
-          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
           npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish to Github Packages
         run: |
