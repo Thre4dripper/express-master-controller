@@ -16,7 +16,8 @@ jobs:
 
       - name: Fetch Template
         run: |
-          git clone https://github.com/Thre4dripper/NodeTs-Express-Service-Based-Template template
+          git clone --depth 1 https://github.com/Thre4dripper/NodeTs-Express-Service-Based-Template template
+          mkdir -p src/config src/enums
           cp template/src-typescript/config/socketConfig.ts src/config/socketConfig.ts
           cp template/src-typescript/config/swaggerConfig.ts src/config/swaggerConfig.ts
           cp template/src-typescript/config/cronConfig.ts src/config/cronConfig.ts
@@ -25,36 +26,33 @@ jobs:
           cp template/src-typescript/app/utils/RequestBuilder.ts src/RequestBuilder.ts
           cp template/src-typescript/app/utils/ResponseBuilder.ts src/ResponseBuilder.ts
           cp template/src-typescript/app/utils/CronBuilder.ts src/CronBuilder.ts
+          cp template/src-typescript/app/utils/GrpcClientFactory.ts src/GrpcClientFactory.ts
+          cp template/src-typescript/app/utils/GrpcMiddleware.ts src/GrpcMiddleware.ts
+          cp template/src-typescript/app/utils/Logger.ts src/Logger.ts
+          cp template/src-typescript/app/handlers/CustomErrorHandler.ts src/CustomErrorHandler.ts
           cp template/src-typescript/app/enums/CronJob.ts src/enums/CronJob.ts
+          cp template/src-typescript/app/enums/StatusCodes.ts src/enums/StatusCodes.ts
           rm -rf template
 
       - name: Fix Imports
         run: |
-          cd src/config
-          
-          # replace /app/utils with nothing globally
-          sed -i 's|/app/utils||g' socketConfig.ts
-          sed -i 's|/app/utils||g' swaggerConfig.ts
-          sed -i 's|/app/utils||g' cronConfig.ts
-          cd ../
-          
-          # replace ../../config/swaggerConfig with ./config/swaggerConfig globally
-          sed -i 's|../../config/swaggerConfig|./config/swaggerConfig|g' MasterController.ts
-          
-          # replace StatusCodes with number globally
-          sed -i 's|StatusCodes|number|g' ResponseBuilder.ts
-          
-          # remove the first two lines
-          sed -i '1,2d' ResponseBuilder.ts
-          
-          # replace ../enums/ with ./enums/ globally
-          sed -i 's|../enums/|./enums/|g' CronBuilder.ts
-          cd ../
+          sed -i 's|/app/utils||g' src/config/socketConfig.ts src/config/swaggerConfig.ts src/config/cronConfig.ts
+          sed -i 's|../../config/swaggerConfig|./config/swaggerConfig|g' src/MasterController.ts
+          sed -i 's|../handlers/CustomErrorHandler|./CustomErrorHandler|g' src/MasterController.ts
+          sed -i 's|../enums/|./enums/|g' src/CronBuilder.ts src/CustomErrorHandler.ts src/ResponseBuilder.ts
+          sed -i 's|../utils/Logger|./Logger|g' src/CustomErrorHandler.ts
+          sed -i 's|node-service-template|express-master-controller|g' src/Logger.ts
+          sed -i 's|\.catch((error) => call.emit|.catch((error: any) => call.emit|g' src/MasterController.ts
 
-      - name: Prettify
+      - name: Install Dependencies
         run: |
           yarn install --frozen-lockfile
-          yarn prettier
+
+      - name: Format
+        run: yarn format
+
+      - name: Build
+        run: yarn build
 
       - name: Check Changes
         id: check_changes

@@ -19,12 +19,13 @@
     }
   },
   "scripts": {
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "transpile": "tsc --project tsconfig.esm.json && tsc --project tsconfig.cjs.json && tsc --project tsconfig.types.json",
     "esm-fix": "tsc-esm-fix --src='dist/esm/src/**/*.js' --ext='.js'",
-    "finalise": "echo {\"type\": \"commonjs\"} > dist/cjs/package.json && echo {\"type\": \"module\"} > dist/esm/package.json",
-    "build": "yarn transpile && yarn esm-fix && yarn finalise",
+    "finalise": "printf '{\"type\":\"commonjs\"}\\n' > dist/cjs/package.json && printf '{\"type\":\"module\"}\\n' > dist/esm/package.json",
+    "build": "yarn clean && yarn transpile && yarn esm-fix && yarn finalise",
     "start": "ts-node src/index.ts",
-    "format": "prettier --write src/**/*.ts"
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "keywords": [
     "Node",

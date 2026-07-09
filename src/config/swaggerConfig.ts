@@ -210,7 +210,9 @@ class SwaggerConfig {
         pathObj[method] = methodObj;
         paths[key] = pathObj;
         this.swaggerDocument.paths = paths;
+    }
 
+    static finalizeSwagger() {
         if (this.swaggerModify) {
             this.modifySwaggerDocument();
         }

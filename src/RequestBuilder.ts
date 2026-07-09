@@ -14,7 +14,7 @@ class RequestBuilder {
         this.payload = [];
     }
 
-    addToParams(payload: Joi.ObjectSchema) {
+    addToPath(payload: Joi.ObjectSchema) {
         this.payload.push({ type: PayloadType.PARAMS, schema: payload });
     }
 

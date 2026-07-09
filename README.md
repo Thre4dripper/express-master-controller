@@ -117,7 +117,7 @@ class Controller extends MasterController<IParams, IQuery, IBody> {
         );
 
         // request params validation
-        payload.addToParams(
+        payload.addToPath(
             Joi.object().keys({
                 id: Joi.number().required(),
             }),

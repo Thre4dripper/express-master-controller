@@ -107,7 +107,7 @@ class MasterController<P, Q, B> {
      *        offset: Joi.number().required(),
      *    })
      * );
-     * payloadValidator.addToParams(
+    * payloadValidator.addToPath(
      *    Joi.object().keys({
      *        id: Joi.number().required(),
      *    })
