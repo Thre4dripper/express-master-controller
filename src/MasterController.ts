@@ -138,7 +138,7 @@ class MasterController<P, Q, B> {
         allData: any
     ): Promise<ResponseBuilder> {
         // Controller logic goes here
-        console.log(params, query, body, headers, allData);
+        logger.debug({ params, query, body, headers, allData }, 'restController');
         // Return a ResponseBuilder instance
         return new ResponseBuilder(200, null, 'Success');
     }
@@ -154,7 +154,7 @@ class MasterController<P, Q, B> {
      */
     socketController(io: Server, socket: Socket, payload: any): void {
         // Logic for handling socket events goes here
-        console.log(io, socket, payload);
+        logger.debug({ payload, socketId: socket.id }, 'socketController');
     }
 
     /**
@@ -163,7 +163,7 @@ class MasterController<P, Q, B> {
      */
     cronController(): void {
         // Implement cron job logic here
-        console.log('Cron job executed');
+        logger.info('Cron job executed');
     }
 
     /**

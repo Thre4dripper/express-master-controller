@@ -2,6 +2,9 @@ import MasterController from '../MasterController';
 import RequestBuilder, { PayloadType } from '../RequestBuilder';
 import j2s from 'joi-to-swagger';
 import * as fs from 'fs/promises';
+import { createLogger } from '../Logger';
+
+const log = createLogger('swagger');
 
 export enum SwaggerMethod {
     GET = 'get',
@@ -218,10 +221,10 @@ class SwaggerConfig {
             flag: 'w',
         })
             .then(() => {
-                console.log('Swagger document updated');
+                log.info('Swagger document updated');
             })
             .catch((err) => {
-                console.log('Error updating swagger document', err);
+                log.error({ err }, 'Error updating swagger document');
             });
     }
 

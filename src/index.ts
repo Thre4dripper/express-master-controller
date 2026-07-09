@@ -16,6 +16,7 @@ import SocketConfig from './config/socketConfig';
 interface IMiddlewareConfig {
     routesFolder?: string;
     cronJobsFolder?: string;
+    socketEventsFolder?: string;
     enableSocket?: boolean;
     swaggerConfig?: SwaggerConfigOptions & { swaggerDocsEndpoint?: string };
 }
@@ -75,7 +76,13 @@ const loadRouters = async (dir: string, app: express.Application) => {
 };
 
 const masterController =
-    ({ routesFolder, cronJobsFolder, enableSocket, swaggerConfig }: IMiddlewareConfig) =>
+    ({
+        routesFolder,
+        cronJobsFolder,
+        socketEventsFolder,
+        enableSocket,
+        swaggerConfig,
+    }: IMiddlewareConfig) =>
     async (req: Request, res: Response, next: NextFunction) => {
         if (!routesFolder) console.warn('No routes folder provided');
         if (!cronJobsFolder) console.warn('No cron jobs folder provided');
@@ -115,12 +122,15 @@ const masterController =
             const httpServer = http.createServer(req.app);
             const io = SocketConfig.init(httpServer);
 
+            if (socketEventsFolder) await SocketConfig.InitSocketModules(socketEventsFolder);
+
             io.on('connection', (socket) => {
                 SocketConfig.socketListener(io, socket);
             });
         }
 
         if (swaggerConfig) {
+            SwaggerConfig.finalizeSwagger();
             req.app.use(
                 swaggerDocsEndpoint || '/api-docs',
                 swaggerUI.serve,
