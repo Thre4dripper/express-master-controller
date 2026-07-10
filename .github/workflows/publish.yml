@@ -184,11 +184,13 @@ jobs:
     needs: check-version
     if: needs.check-version.outputs.should_update == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.WORKFLOW_TOKEN }}
+          token: ${{ github.token }}
 
       - name: Loop until versions match
         run: |
