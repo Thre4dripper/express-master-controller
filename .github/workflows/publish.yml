@@ -121,16 +121,12 @@ jobs:
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Check npm trusted publishing runtime
-        run: |
-          node --version
-          npm --version
+          package-manager-cache: false
 
       - name: Publish package on NPM with trusted publishing
         run: |
           echo "Publishing to NPM"
-          npm publish
+          npm publish --provenance
 
       - name: Publish to Github Packages
         run: |

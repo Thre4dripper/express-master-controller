@@ -10,7 +10,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Thre4dripper/express-master-controller.git"
+    "url": "git+https://github.com/Thre4dripper/express-master-controller.git"
+  },
+  "publishConfig": {
+    "provenance": true
   },
   "exports": {
     ".": {
