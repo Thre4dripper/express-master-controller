@@ -142,6 +142,8 @@ jobs:
     needs: publish
     if: needs.publish.result == 'success'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       VERSION: ${{ steps.get_version.outputs.VERSION }}
     steps:
@@ -170,7 +172,7 @@ jobs:
         id: create_release
         env:
           tag: v${{ steps.get_version.outputs.VERSION }}
-          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
